@@ -30,4 +30,7 @@ jobs:
 
       - name: Typecheck and build
         run: npm run build
-        
+
+      - name: Prisma generate
+        run: npx prisma generate
+          
