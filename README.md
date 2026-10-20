@@ -30,6 +30,42 @@ The existing [CI workflow](.github/workflows/ci.yml) also runs the same command.
 Local hooks can be bypassed, so require a passing CI check in GitHub branch
 protection for server-side enforcement.
 
+## Continuous integration
+
+The [CI workflow](.github/workflows/ci.yml) runs `npm ci`, `npm run build`,
+`npm run lint`, and `npm test` on pull requests opened, updated, or reopened
+against any branch, and on pushes to `main` or `master` (including merges).
+It uses the Node.js version from [.nvmrc](.nvmrc). Any failed command fails the
+job; failures are not ignored.
+
+**Current prerequisite:** this repository does not yet define an `npm test`
+script or a test suite. The test step will fail until those are added. The
+workflow intentionally does not skip missing tests or report a false success.
+
+### Block merges when CI fails
+
+A workflow file alone does not block merges. A repository administrator must
+configure GitHub after pushing this workflow and letting it run at least once:
+
+1. Open **Settings > Branches > Add branch protection rule**.
+2. Set the branch name pattern to `main`.
+3. Enable **Require a pull request before merging**.
+4. Enable **Require status checks to pass before merging** and select
+   **Build, lint and test** from GitHub Actions.
+5. Enable **Require branches to be up to date before merging**.
+6. Enable **Do not allow bypassing the above settings** so administrators cannot
+   bypass failed checks, then save.
+7. Repeat for `master` if that branch is used.
+
+These settings are not applied by this local change. Verify enforcement with a
+failing pull request: the required check should fail and merging should be
+blocked. After fixing the failure and rerunning CI successfully, the check
+should pass.
+
+Only the backend workflow is changed here. The frontend repository needs its
+own workflow, working build/lint/test scripts, and the same branch protection
+settings.
+
 ## Applying the same policy to the frontend
 
 Only this backend repository is configured by this change. In the frontend's
