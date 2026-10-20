@@ -1,19 +1,19 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "Build backend",
-			"type": "shell",
-			"command": "npm run build",
-			"problemMatcher": [],
-			"group": "build"
-		},
-		{
-			"label": "Run backend",
-			"type": "shell",
-			"command": "npm start",
-			"isBackground": true,
-			"problemMatcher": []
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build backend",
+      "type": "shell",
+      "command": "npm run build",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Run backend",
+      "type": "shell",
+      "command": "npm start",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
 }
