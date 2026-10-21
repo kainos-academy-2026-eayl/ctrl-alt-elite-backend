@@ -1,67 +1,59 @@
 import { hash } from 'argon2'
+import { z } from 'zod'
 import type { PrismaClient } from './generated/prisma/client'
 
-export type Registration = {
-  firstName: string
-  lastName: string
-  email: string
-  password: string
-  confirmPassword: string
-}
+const nameMessage =
+  'First and last names are required and must be at most 100 characters.'
+const emailMessage = 'Please enter a valid email address.'
+const passwordMessage =
+  'Use 8 to 128 characters, including a digit and one of: @, \u00a3, $, %, &.'
+const confirmationMessage = 'Passwords do not match.'
+const nameSchema = z
+  .string({ error: nameMessage })
+  .trim()
+  .min(1, nameMessage)
+  .max(100, nameMessage)
+
+export const registrationSchema = z
+  .object(
+    {
+      firstName: nameSchema,
+      lastName: nameSchema,
+      email: z
+        .string({ error: emailMessage })
+        .trim()
+        .max(254, emailMessage)
+        .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, emailMessage)
+        .toLowerCase(),
+      password: z
+        .string({ error: passwordMessage })
+        .min(8, passwordMessage)
+        .max(128, passwordMessage)
+        .regex(/\d/, passwordMessage)
+        .regex(/[@\u00a3$%&]/, passwordMessage),
+      confirmPassword: z.string({ error: confirmationMessage }),
+    },
+    {
+      error:
+        'Invalid details - check firstName, lastName, email or password provided.',
+    },
+  )
+  .refine(
+    (registration) => registration.password === registration.confirmPassword,
+    { message: confirmationMessage, path: ['confirmPassword'] },
+  )
+
+export type Registration = z.infer<typeof registrationSchema>
 
 export function validateRegistration(body: unknown): Registration {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+  const result = registrationSchema.safeParse(body)
+  if (!result.success) {
     throw new RegistrationValidationError(
-      'Registration details must be a JSON object.',
+      result.error.issues[0]?.message ?? 'Invalid registration details.',
     )
   }
 
-  const fields: Record<string, unknown> = Object.fromEntries(
-    Object.entries(body),
-  )
-  const { firstName, lastName, email, password, confirmPassword } = fields
-
-  if (
-    typeof firstName !== 'string' ||
-    !firstName.trim() ||
-    firstName.trim().length > 100 ||
-    typeof lastName !== 'string' ||
-    !lastName.trim() ||
-    lastName.trim().length > 100
-  ) {
-    throw new RegistrationValidationError(
-      'First and last names are required and must be at most 100 characters.',
-    )
-  }
-  if (
-    typeof email !== 'string' ||
-    email.trim().length > 254 ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
-  ) {
-    throw new RegistrationValidationError('Please enter a valid email address.')
-  }
-  if (
-    typeof password !== 'string' ||
-    password.length < 8 ||
-    password.length > 128 ||
-    !/\d/.test(password) ||
-    !/[@\u00a3$%&]/.test(password)
-  ) {
-    throw new RegistrationValidationError(
-      'Use 8 to 128 characters, including a digit and one of: @, \u00a3, $, %, &.',
-    )
-  }
-  if (typeof confirmPassword !== 'string' || password !== confirmPassword) {
-    throw new RegistrationValidationError('Passwords do not match.')
-  }
-
-  return {
-    firstName: firstName.trim(),
-    lastName: lastName.trim(),
-    email: email.trim().toLowerCase(),
-    password,
-    confirmPassword,
-  }
+  return result.data
 }
 
 export class RegistrationValidationError extends Error {}

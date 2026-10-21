@@ -4,8 +4,11 @@ import { randomUUID } from 'node:crypto'
 import { once } from 'node:events'
 import { test } from 'node:test'
 import { verify } from 'argon2'
+import { z } from 'zod'
 import { createApp } from '../src/app'
 import { createDatabase } from '../src/database'
+
+const messageResponseSchema = z.object({ message: z.string() })
 
 test('registration API persists users securely and handles invalid requests', {
   skip:
@@ -48,7 +51,10 @@ test('registration API persists users securely and handles invalid requests', {
 
   const health = await fetch(`${baseUrl}/health`)
   assert.equal(health.status, 200)
-  assert.equal((await health.json()).status, 'ok')
+  assert.equal(
+    z.object({ status: z.string() }).parse(await health.json()).status,
+    'ok',
+  )
 
   const preflight = await fetch(`${baseUrl}/api/auth/register`, {
     method: 'OPTIONS',
@@ -64,7 +70,17 @@ test('registration API persists users securely and handles invalid requests', {
   const response = await post(registration)
   assert.equal(response.status, 201)
   assert.equal(response.headers.get('access-control-allow-origin'), origin)
-  const result = await response.json()
+  const result = z
+    .strictObject({
+      user: z.strictObject({
+        id: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        email: z.string(),
+        createdAt: z.string(),
+      }),
+    })
+    .parse(await response.json())
   assert.deepEqual(Object.keys(result), ['user'])
   assert.deepEqual(Object.keys(result.user).sort(), [
     'createdAt',
@@ -82,7 +98,7 @@ test('registration API persists users securely and handles invalid requests', {
   const duplicate = await post({ ...registration, email })
   assert.equal(duplicate.status, 409)
   assert.equal(
-    (await duplicate.json()).message,
+    messageResponseSchema.parse(await duplicate.json()).message,
     'An account with this email already exists.',
   )
   assert.equal(
@@ -99,7 +115,7 @@ test('registration API persists users securely and handles invalid requests', {
   })
   assert.equal(malformed.status, 400)
   assert.equal(
-    (await malformed.json()).message,
+    messageResponseSchema.parse(await malformed.json()).message,
     'Request body must contain valid JSON.',
   )
   const unsupported = await fetch(`${baseUrl}/api/auth/register`, {
