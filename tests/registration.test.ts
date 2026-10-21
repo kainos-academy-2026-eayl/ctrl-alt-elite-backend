@@ -1,9 +1,9 @@
-import assert from 'node:assert/strict'
-import { test } from 'node:test'
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import {
   RegistrationValidationError,
   validateRegistration,
-} from '../src/registration'
+} from '../src/registration';
 
 const valid = {
   firstName: ' Caolan ',
@@ -11,7 +11,7 @@ const valid = {
   email: ' CAOLAN@example.com ',
   password: 'Password1@',
   confirmPassword: 'Password1@',
-}
+};
 
 test('normalises names and email without changing passwords', () => {
   assert.deepEqual(validateRegistration(valid), {
@@ -19,19 +19,19 @@ test('normalises names and email without changing passwords', () => {
     firstName: 'Caolan',
     lastName: 'Example',
     email: 'caolan@example.com',
-  })
-})
+  });
+});
 
 test('accepts exactly eight password characters and each frontend special character', () => {
   for (const character of ['@', '\u00a3', '$', '%', '&']) {
-    const password = `abcdef1${character}`
+    const password = `abcdef1${character}`;
     assert.equal(
       validateRegistration({ ...valid, password, confirmPassword: password })
         .password,
       password,
-    )
+    );
   }
-})
+});
 
 test('rejects invalid fields and non-object input', () => {
   const invalid: unknown[] = [
@@ -61,19 +61,19 @@ test('rejects invalid fields and non-object input', () => {
     { ...valid, confirmPassword: undefined },
     { ...valid, confirmPassword: 1 },
     { ...valid, confirmPassword: 'different' },
-  ]
+  ];
   for (const input of invalid) {
     assert.throws(
       () => validateRegistration(input),
       RegistrationValidationError,
-    )
+    );
   }
-})
+});
 
 test('accepts exact maximum lengths after trimming names and email', () => {
-  const name = 'a'.repeat(100)
-  const email = `${'a'.repeat(242)}@example.com`
-  const password = `A1@${'a'.repeat(125)}`
+  const name = 'a'.repeat(100);
+  const email = `${'a'.repeat(242)}@example.com`;
+  const password = `A1@${'a'.repeat(125)}`;
   assert.deepEqual(
     validateRegistration({
       firstName: ` ${name} `,
@@ -89,12 +89,12 @@ test('accepts exact maximum lengths after trimming names and email', () => {
       password,
       confirmPassword: password,
     },
-  )
+  );
   assert.throws(
     () => validateRegistration({ ...valid, email: `a${email}` }),
     RegistrationValidationError,
-  )
-})
+  );
+});
 
 test('preserves the existing email pattern and strips unknown fields', () => {
   assert.deepEqual(
@@ -105,19 +105,19 @@ test('preserves the existing email pattern and strips unknown fields', () => {
       lastName: 'Example',
       email: 'a@b.c',
     },
-  )
-})
+  );
+});
 
 test('preserves whitespace in passwords', () => {
-  const password = ' Password1@ '
+  const password = ' Password1@ ';
   const registration = validateRegistration({
     ...valid,
     password,
     confirmPassword: password,
-  })
-  assert.equal(registration.password, password)
-  assert.equal(registration.confirmPassword, password)
-})
+  });
+  assert.equal(registration.password, password);
+  assert.equal(registration.confirmPassword, password);
+});
 
 test('preserves validation messages and first-error precedence', () => {
   const cases = [
@@ -153,8 +153,11 @@ test('preserves validation messages and first-error precedence', () => {
       input: { ...valid, confirmPassword: undefined },
       message: 'Passwords do not match.',
     },
-  ]
+  ];
   for (const { input, message } of cases) {
-    assert.throws(() => validateRegistration(input), { name: 'Error', message })
+    assert.throws(() => validateRegistration(input), {
+      name: 'Error',
+      message,
+    });
   }
-})
+});
