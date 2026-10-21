@@ -32,15 +32,15 @@ protection for server-side enforcement.
 
 ## Continuous integration
 
-The [CI workflow](.github/workflows/ci.yml) runs `npm ci`, `npm run build`,
-`npm run lint`, and `npm test` on pull requests opened, updated, or reopened
-against any branch, and on pushes to `main` or `master` (including merges).
+The [CI workflow](.github/workflows/ci.yml) runs `npm ci`, generates the Prisma
+client, then runs `npm run build`, `npm run lint`, and `npm test` on pull
+requests opened, updated, or reopened against any branch, and on pushes to
+`main` or `master` (including merges).
 It uses the Node.js version from [.nvmrc](.nvmrc). Any failed command fails the
 job; failures are not ignored.
 
-**Current prerequisite:** this repository does not yet define an `npm test`
-script or a test suite. The test step will fail until those are added. The
-workflow intentionally does not skip missing tests or report a false success.
+`npm test` runs only the registration validation and error-handler unit tests.
+These tests do not start a server or connect to PostgreSQL.
 
 ### Block merges when CI fails
 
