@@ -39,8 +39,8 @@ requests opened, updated, or reopened against any branch, and on pushes to
 It uses the Node.js version from [.nvmrc](.nvmrc). Any failed command fails the
 job; failures are not ignored.
 
-`npm test` runs the unit and integration tests. The integration test is skipped
-unless `RUN_DB_TESTS=1` is set and PostgreSQL is available.
+`npm test` runs only the registration validation and error-handler unit tests.
+These tests do not start a server or connect to PostgreSQL.
 
 ### Block merges when CI fails
 
