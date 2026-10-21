@@ -1,6 +1,17 @@
 # ctrl-alt-elite-backend
 Ctrl Alt Elite Backend
 
+## Authentication
+
+- `POST /api/auth/register` creates a `CUSTOMER` account.
+- `POST /api/auth/login` takes `{ email, password }` and returns `{ user }`, including `user.role` (`CUSTOMER` or `ADMIN`). Invalid credentials return 401 with a generic message. There are no sessions or tokens yet.
+
+New accounts are always `CUSTOMER`. To make someone an admin, run this against the database:
+
+```sql
+UPDATE "User" SET role = 'ADMIN' WHERE email = 'admin@example.com';
+```
+
 ## Linting
 
 Biome checks code formatting, recommended lint rules, and import ordering. The

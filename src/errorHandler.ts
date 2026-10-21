@@ -1,11 +1,17 @@
 import type { ErrorRequestHandler } from 'express';
 import { Prisma } from './generated/prisma/client';
+import { InvalidCredentialsError, LoginValidationError } from './login';
 import { RegistrationValidationError } from './registration';
 
 export class ErrorHandler {
   handle: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
-    if (error instanceof RegistrationValidationError) {
+    if (
+      error instanceof RegistrationValidationError ||
+      error instanceof LoginValidationError
+    ) {
       res.status(400).json({ message: error.message });
+    } else if (error instanceof InvalidCredentialsError) {
+      res.status(401).json({ message: error.message });
     } else if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === 'P2002'

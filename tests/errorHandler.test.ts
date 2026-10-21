@@ -3,6 +3,7 @@ import { mock, test } from 'node:test';
 import type { Request, Response } from 'express';
 import { ErrorHandler } from '../src/errorHandler';
 import { Prisma } from '../src/generated/prisma/client';
+import { InvalidCredentialsError, LoginValidationError } from '../src/login';
 import { RegistrationValidationError } from '../src/registration';
 
 function handleError(error: unknown) {
@@ -20,6 +21,20 @@ const cases = [
     error: new RegistrationValidationError('Invalid request details.'),
     statusCode: 400,
     message: 'Invalid request details.',
+  },
+  {
+    name: 'returns 400 for login validation errors',
+    error: new LoginValidationError(
+      'Please enter your email address and password.',
+    ),
+    statusCode: 400,
+    message: 'Please enter your email address and password.',
+  },
+  {
+    name: 'returns 401 for invalid credentials',
+    error: new InvalidCredentialsError(),
+    statusCode: 401,
+    message: 'Invalid email or password.',
   },
   {
     name: 'returns 409 for a duplicate email',
