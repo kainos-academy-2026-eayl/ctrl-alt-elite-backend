@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
+import { getCustomer, listCustomers, validateCustomerQuery } from './customers';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
 import { authenticateUser } from './login';
