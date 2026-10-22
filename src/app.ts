@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
+import { createCatalogRouter } from './catalog_app';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
 import { registerUser, validateRegistration } from './registration';
@@ -15,6 +16,8 @@ export function createApp(
   app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
+
+  app.use('/api', createCatalogRouter(database));
 
   app.post('/api/auth/register', async (req: Request, res: Response) => {
     if (!req.is('application/json')) {

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <title>Golden crown with ruby and sapphire jewels</title>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0a6"/>
+      <stop offset=".45" stop-color="#f7ca50"/>
+      <stop offset="1" stop-color="#c48718"/>
+    </linearGradient>
+    <linearGradient id="band" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cd901f"/>
+      <stop offset=".5" stop-color="#ffe594"/>
+      <stop offset="1" stop-color="#cd901f"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="400" cy="490" rx="245" ry="24" fill="#39274d" opacity=".12"/>
+  <path d="m172 241 94 71 38-137 96 121 96-121 38 137 94-71-49 191H221Z"
+        fill="url(#gold)" stroke="#a96d15" stroke-width="9" stroke-linejoin="round"/>
+  <path d="m195 269 76 58 38-124 91 114 91-114 38 124 76-58"
+        fill="none" stroke="#fff3bc" stroke-width="7" stroke-linejoin="round"/>
+  <g fill="#ffe597" stroke="#b87b19" stroke-width="7">
+    <circle cx="169" cy="231" r="21"/>
+    <circle cx="302" cy="161" r="21"/>
+    <circle cx="498" cy="161" r="21"/>
+    <circle cx="631" cy="231" r="21"/>
+  </g>
+  <path d="m400 212 25 40-25 39-25-39Z" fill="#bc3856" stroke="#fff0a6" stroke-width="6"/>
+  <rect x="218" y="402" width="364" height="68" rx="16" fill="url(#band)" stroke="#a96d15" stroke-width="9"/>
+  <path d="M235 417h330M235 454h330" stroke="#fff0ad" stroke-width="5" stroke-linecap="round"/>
+  <g stroke="#fff1b0" stroke-width="6">
+    <path d="m400 414 26 22-26 22-26-22Z" fill="#c53355"/>
+    <ellipse cx="301" cy="436" rx="16" ry="14" fill="#3967b7"/>
+    <ellipse cx="499" cy="436" rx="16" ry="14" fill="#3967b7"/>
+  </g>
+  <g fill="#fff5ce">
+    <circle cx="254" cy="436" r="6"/>
+    <circle cx="349" cy="436" r="6"/>
+    <circle cx="451" cy="436" r="6"/>
+    <circle cx="546" cy="436" r="6"/>
+    <path d="m400 91 5 19 19 5-19 5-5 19-5-19-19-5 19-5Z"/>
+    <path d="m660 342 4 14 14 4-14 4-4 14-4-14-14-4 14-4Z"/>
+    <path d="m136 355 4 14 14 4-14 4-4 14-4-14-14-4 14-4Z"/>
+  </g>
+</svg>

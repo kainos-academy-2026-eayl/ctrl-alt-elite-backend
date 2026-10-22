@@ -1,6 +1,54 @@
 # ctrl-alt-elite-backend
 Ctrl Alt Elite Backend
 
+## Connecting the product frontend
+
+Run the backend on port `3001` and the frontend on port `8080`.
+Copy [.env.example](.env.example) to `.env` if needed, replace the local database
+password and set the matching `DATABASE_URL`. The backend settings are:
+
+```ini
+PORT=3001
+FRONTEND_ORIGIN=http://localhost:8080
+```
+
+In the frontend's `.env`, set:
+
+```ini
+PORT=8080
+BACKEND_ORIGIN=http://localhost:3001
+```
+
+Prepare the backend database and start the API:
+
+```sh
+npm run db:up
+npm run db:deploy
+npm run db:generate
+npm run db:seed
+npm run dev
+```
+
+The seed command upserts three placeholder products with bundled 640 x 480 SVG
+illustrations from [prisma/images](prisma/images); it does not delete other
+products. Re-run `npm run db:seed` to replace the old single-pixel seed images.
+The illustrations are stored in PostgreSQL, so no external image host is needed.
+Start the frontend with `npm run dev` in its own repository, then open
+`http://localhost:8080/products`. The frontend server fetches the real backend;
+both processes must be running.
+
+`GET http://localhost:3001/api/products` returns `{ "products": [...] }`.
+Each product has `id`, `name`, `category`, `description`, numeric `price`, `stock`,
+and an `image` string. Images stored in the database must be PNG bytes or SVG
+documents beginning with `<svg`. The API returns a base64 data URL with the
+matching `image/png` or `image/svg+xml` media type for HTML image elements.
+Unsupported image data is logged and returns HTTP 500 rather than a broken URL.
+The single-product endpoint, `GET /api/products/:id`, uses the same product shape
+inside `{ "product": ... }`. Existing products receive category `Uncategorised`
+and an empty description during migration; populate these fields with your own
+catalogue content. Database failures return HTTP 500, allowing the frontend to
+show its temporary-unavailable message.
+
 ## Linting
 
 Biome checks code formatting, recommended lint rules, and import ordering. The
@@ -39,8 +87,9 @@ requests opened, updated, or reopened against any branch, and on pushes to
 It uses the Node.js version from [.nvmrc](.nvmrc). Any failed command fails the
 job; failures are not ignored.
 
-`npm test` runs only the registration validation and error-handler unit tests.
-These tests do not start a server or connect to PostgreSQL.
+`npm test` runs registration, error-handler and product API tests.
+Product tests start a temporary HTTP server with a mocked database; none of
+these tests connect to PostgreSQL.
 
 ### Block merges when CI fails
 
