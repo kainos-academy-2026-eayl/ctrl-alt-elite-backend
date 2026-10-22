@@ -1,12 +1,24 @@
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
+import { BasketController } from './controllers/basketController';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
 import { registerUser, validateRegistration } from './registration';
+import { createBasketRouter } from './routes/basketRouter';
+import { BasketService } from './services/basketService';
+
+export interface AppServices {
+  basketService: BasketService;
+}
+
+export function createServices(database: PrismaClient): AppServices {
+  return { basketService: new BasketService(database) };
+}
 
 export function createApp(
   database: PrismaClient,
   frontendOrigin: string,
+  services: AppServices = createServices(database),
 ): Express {
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
@@ -27,6 +39,11 @@ export function createApp(
     const user = await registerUser(database, registration);
     res.status(201).json({ user });
   });
+
+  app.use(
+    '/api/baskets',
+    createBasketRouter(new BasketController(services.basketService)),
+  );
 
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);
