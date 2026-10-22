@@ -203,10 +203,9 @@ before building. This step supplies a placeholder `DATABASE_URL` because
 Client generation does not connect to a database or apply migrations, so this
 step needs neither a running PostgreSQL server nor database secrets.
 
-`npm test` runs registration, error-handler, catalogue repository/service and
-customer unit tests, plus the existing product API tests.
-Product API tests start a temporary HTTP server with a mocked database; none of
-these tests connect to PostgreSQL.
+`npm test` runs every `tests/**/*.test.ts` file with the Node.js test runner.
+Product and basket API tests start a temporary HTTP server with a mocked
+database; none of these tests connect to PostgreSQL.
 
 Run `npm run test:customers:unit` for isolated customer validation and service
 tests in [customers.test.ts](tests/customers.test.ts). These call public functions
@@ -224,6 +223,55 @@ Authorization middleware unit tests in
 with mocked requests, responses and database calls. They run through `npm test`
 without starting a server. They cover token and role checks, not route wiring
 or end-to-end login flows.
+
+## Basket API (KAN-28)
+
+Prices and names come from the `Product` table, never from the client. Product
+prices are stored in pounds and converted to whole pence (rounded) for basket
+responses. Seed the catalogue after migrating:
+
+```sh
+npm run db:deploy
+npm run db:seed   # idempotent; safe to run repeatedly
+```
+
+| Method | Path | Body | Success |
+| --- | --- | --- | --- |
+| `POST` | `/api/baskets` | none | `201` empty basket |
+| `GET` | `/api/baskets/:basketId` | none | `200` basket |
+| `POST` | `/api/baskets/:basketId/items` | `{ "productId": "<product id>" }` | `201` new line, `200` quantity +1 |
+| `PATCH` | `/api/baskets/:basketId/items/:productId` | `{ "quantity": 3 }` or `{ "change": -1 }` | `200` basket |
+| `DELETE` | `/api/baskets/:basketId/items/:productId` | none | `204` |
+
+Every basket response has this shape (`items[].id` is the product id, matching
+the frontend's `BasketLine`; all money is whole pence):
+
+```json
+{
+  "id": "6f1c2f0e-6a8e-4c43-9a51-3f3c9b8f4b11",
+  "items": [
+    { "id": "99a89432-b64d-4c54-b6af-71591fdb0a01", "name": "Swaggy Jeans", "unitPricePence": 2499, "quantity": 2, "lineTotalPence": 4998 }
+  ],
+  "itemCount": 2,
+  "totalPence": 4998,
+  "maxQuantity": 99
+}
+```
+
+Business rules: items are added with quantity 1, adding again increases the
+quantity by 1, and quantities must be whole numbers from 1 to 99. A `change`
+(as sent by the frontend's +/− buttons) is applied atomically and clamped to
+1–99, so rapid clicks are never lost. Lines are returned in the order they were
+first added.
+
+| Status | When |
+| --- | --- |
+| `400` | Invalid basket id, quantity or change, or an unknown product: `{ message, errors: [{ field, message }] }` |
+| `404` | Basket, or basket line, not found |
+| `409` | Adding a product already at the maximum quantity of 99 |
+| `415` | `POST`/`PATCH` body is not `application/json` |
+
+If a stored basket id returns `404`, the frontend should create a new basket.
 
 ### Block merges when CI fails
 
