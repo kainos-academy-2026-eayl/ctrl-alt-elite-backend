@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
+import { getCustomer, listCustomers, validateCustomerQuery } from './customers';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
 import { registerUser, validateRegistration } from './registration';
@@ -26,6 +27,15 @@ export function createApp(
     const registration = validateRegistration(req.body);
     const user = await registerUser(database, registration);
     res.status(201).json({ user });
+  });
+
+  app.get('/api/customers', async (req: Request, res: Response) => {
+    const query = validateCustomerQuery(req.query);
+    res.json(await listCustomers(database, query));
+  });
+
+  app.get('/api/customers/:id', async (req: Request, res: Response) => {
+    res.json({ customer: await getCustomer(database, String(req.params.id)) });
   });
 
   const errorHandler = new ErrorHandler();
