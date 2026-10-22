@@ -45,6 +45,15 @@ export function createApp(
     res.json({ user });
   });
 
+  app.get('/api/customers', async (req: Request, res: Response) => {
+    const query = validateCustomerQuery(req.query);
+    res.json(await listCustomers(database, query));
+  });
+
+  app.get('/api/customers/:id', async (req: Request, res: Response) => {
+    res.json({ customer: await getCustomer(database, String(req.params.id)) });
+  });
+
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);
 
