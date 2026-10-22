@@ -37,12 +37,13 @@ const testing_product_upload = [
     id: '99a89432-b64d-4c54-b6af-71591fdb0a04',
     name: 'Princess Dylan Crown',
     category: 'Home',
-    description: 'Be a princess with this crown and win lots of task master points.',
+    description:
+      'Be a princess with this crown and win lots of task master points.',
     price: 9999,
     stock: 88,
     image: readFileSync(new URL('./images/crown.svg', import.meta.url)),
-  }
-]
+  },
+];
 
 const database = createDatabase();
 
