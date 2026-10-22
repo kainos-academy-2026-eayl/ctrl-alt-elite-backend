@@ -1,5 +1,11 @@
 import cors from 'cors';
-import express, { type Express, type Request, type Response } from 'express';
+import express, {
+  type Express,
+  type Request,
+  type Response,
+  Router,
+} from 'express';
+import { createAuthorization } from './authorization';
 import { getCustomer, listCustomers, validateCustomerQuery } from './customers';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
@@ -9,7 +15,9 @@ import { registerUser, validateRegistration } from './registration';
 export function createApp(
   database: PrismaClient,
   frontendOrigin: string,
+  jwtSecret: string,
 ): Express {
+  const { issueToken, requireAdmin } = createAuthorization(database, jwtSecret);
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
   app.use(express.json({ limit: '16kb' }));
@@ -37,22 +45,28 @@ export function createApp(
         .json({ message: 'Content-Type must be application/json.' });
       return;
     }
-    const user = await authenticateUser(database, req.body);
-    if (!user) {
+    const authenticated = await authenticateUser(database, req.body);
+    if (!authenticated) {
       res.status(401).json({ message: 'Incorrect email or password.' });
       return;
     }
-    res.json({ user });
+    const token = await issueToken(authenticated.userId);
+    res.json({ ...authenticated, token });
   });
 
-  app.get('/api/customers', async (req: Request, res: Response) => {
+  const customers = Router();
+  customers.get('/', async (req: Request, res: Response) => {
     const query = validateCustomerQuery(req.query);
     res.json(await listCustomers(database, query));
   });
 
-  app.get('/api/customers/:id', async (req: Request, res: Response) => {
+  customers.get('/:id', async (req: Request, res: Response) => {
     res.json({ customer: await getCustomer(database, String(req.params.id)) });
   });
+
+  app.use('/api/admin', requireAdmin);
+  app.use('/api/admin/customers', customers);
+  app.use('/api/customers', requireAdmin, customers);
 
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);

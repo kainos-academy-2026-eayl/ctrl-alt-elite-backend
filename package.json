@@ -11,7 +11,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "test": "node --import tsx --test tests/registration.test.ts tests/customers.test.ts tests/errorHandler.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "build": "npm run typecheck && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=dist/index.js --sourcemap",
     "typecheck": "tsc",
     "start": "node dist/index.js",
@@ -40,6 +40,7 @@
     "cors": "2.8.6",
     "dotenv": "17.4.2",
     "express": "5.2.1",
+    "jose": "^6.1.0",
     "node": "^26.12.0",
     "zod": "^4.6.7"
   }
