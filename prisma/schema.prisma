@@ -19,6 +19,12 @@ model User {
 model Product {
   id             String       @id @db.VarChar(100)
   name           String       @db.VarChar(200)
+  description    String       @default("") @db.VarChar(1000)
+  imageUrl       String       @default("/assets/images/placeholder.svg") @db.VarChar(500)
+  keywords       String[]     @default([])
+  isInStock      Boolean      @default(true)
+  /// Position in the catalogue; search results keep this order, like the frontend.
+  displayOrder   Int          @default(0)
   unitPricePence Int
   basketItems    BasketItem[]
 }

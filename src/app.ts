@@ -1,18 +1,25 @@
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
 import { BasketController } from './controllers/basketController';
+import { ProductController } from './controllers/productController';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
 import { registerUser, validateRegistration } from './registration';
 import { createBasketRouter } from './routes/basketRouter';
+import { createProductRouter } from './routes/productRouter';
 import { BasketService } from './services/basketService';
+import { ProductService } from './services/productService';
 
 export interface AppServices {
   basketService: BasketService;
+  productService: ProductService;
 }
 
 export function createServices(database: PrismaClient): AppServices {
-  return { basketService: new BasketService(database) };
+  return {
+    basketService: new BasketService(database),
+    productService: new ProductService(database),
+  };
 }
 
 export function createApp(
@@ -43,6 +50,11 @@ export function createApp(
   app.use(
     '/api/baskets',
     createBasketRouter(new BasketController(services.basketService)),
+  );
+
+  app.use(
+    '/api/products',
+    createProductRouter(new ProductController(services.productService)),
   );
 
   const errorHandler = new ErrorHandler();

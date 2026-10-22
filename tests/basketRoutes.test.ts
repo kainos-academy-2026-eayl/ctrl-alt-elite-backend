@@ -7,6 +7,7 @@ import { ConflictError, NotFoundError } from '../src/errors/appErrors';
 import type { PrismaClient } from '../src/generated/prisma/client';
 import { Basket, BasketLine } from '../src/models/basket';
 import type { BasketService } from '../src/services/basketService';
+import type { ProductService } from '../src/services/productService';
 
 const BASKET_ID = '6f1c2f0e-6a8e-4c43-9a51-3f3c9b8f4b11';
 const basket = new Basket(BASKET_ID, [
@@ -60,6 +61,7 @@ beforeEach(() => {
   basketService = createMockBasketService();
   app = createApp({} as PrismaClient, 'http://localhost:3000', {
     basketService: basketService as unknown as BasketService,
+    productService: {} as ProductService,
   });
 });
 

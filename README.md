@@ -91,6 +91,55 @@ first added.
 
 If a stored basket id returns `404`, the frontend should create a new basket.
 
+## Product search API (KAN-23)
+
+`GET /api/products/search?q=<term>` searches the `Product` table by name and
+keywords. The backend owns the search rules
+([src/models/productSearch.ts](src/models/productSearch.ts), tested in
+[tests/productSearch.test.ts](tests/productSearch.test.ts)); the frontend's
+`/search` page calls this endpoint and renders the response as-is.
+
+- Matching is case-insensitive, every word must match, and partial words match
+  (`headphone` finds both headphones).
+- Misspelled words are corrected to the closest product word: no typos for
+  words under 3 letters, 1 for 3–5 letters and 2 for 6 or more. When this
+  happens `isClosestMatch` is `true`.
+- Out of stock products are included, with `isInStock: false`.
+- `q` is normalised like the frontend's `normaliseSearchTerm`: trimmed and cut
+  to 100 characters. A missing, blank or repeated `q` returns no products;
+  it is never rejected.
+- Results keep catalogue order (`displayOrder`).
+
+Run `npm run db:deploy && npm run db:seed` to add the description, image,
+keywords, stock and display order columns and seed all 8 products from
+[src/data/sampleProducts.ts](src/data/sampleProducts.ts). These are temporary
+sample products matching the frontend's homepage; replace them with the real
+catalogue when it is ready.
+
+```json
+{
+  "searchTerm": "lamp",
+  "products": [
+    {
+      "id": "sample-lamp",
+      "name": "Desk Lamp",
+      "description": "Adjustable LED lamp with a warm and a cool light setting.",
+      "imageUrl": "/assets/images/placeholder.svg",
+      "price": "24.99",
+      "keywords": ["light", "lighting", "led"],
+      "isInStock": true
+    }
+  ],
+  "isClosestMatch": false
+}
+```
+
+Each product has exactly the frontend's `Product` fields, in the same order,
+with `price` as a pounds string.
+
+The whole catalogue is matched in memory, which suits the current small
+catalogue. A large catalogue would need database-side search instead.
+
 ### Block merges when CI fails
 
 A workflow file alone does not block merges. A repository administrator must
