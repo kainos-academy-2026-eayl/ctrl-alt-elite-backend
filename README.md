@@ -39,8 +39,57 @@ requests opened, updated, or reopened against any branch, and on pushes to
 It uses the Node.js version from [.nvmrc](.nvmrc). Any failed command fails the
 job; failures are not ignored.
 
-`npm test` runs only the registration validation and error-handler unit tests.
-These tests do not start a server or connect to PostgreSQL.
+`npm test` runs every `tests/**/*.test.ts` file with the Node.js test runner.
+These tests mock the database, so they do not start a server or connect to
+PostgreSQL.
+
+## Basket API (KAN-28)
+
+Prices and names come from the `Product` table, never from the client. Seed the
+catalogue (the same products as the frontend's sample data) after migrating:
+
+```sh
+npm run db:deploy
+npm run db:seed   # idempotent; safe to run repeatedly
+```
+
+| Method | Path | Body | Success |
+| --- | --- | --- | --- |
+| `POST` | `/api/baskets` | none | `201` empty basket |
+| `GET` | `/api/baskets/:basketId` | none | `200` basket |
+| `POST` | `/api/baskets/:basketId/items` | `{ "productId": "sample-lamp" }` | `201` new line, `200` quantity +1 |
+| `PATCH` | `/api/baskets/:basketId/items/:productId` | `{ "quantity": 3 }` or `{ "change": -1 }` | `200` basket |
+| `DELETE` | `/api/baskets/:basketId/items/:productId` | none | `204` |
+
+Every basket response has this shape (`items[].id` is the product id, matching
+the frontend's `BasketLine`; all money is whole pence):
+
+```json
+{
+  "id": "6f1c2f0e-6a8e-4c43-9a51-3f3c9b8f4b11",
+  "items": [
+    { "id": "sample-lamp", "name": "Desk Lamp", "unitPricePence": 2499, "quantity": 2, "lineTotalPence": 4998 }
+  ],
+  "itemCount": 2,
+  "totalPence": 4998,
+  "maxQuantity": 99
+}
+```
+
+Business rules: items are added with quantity 1, adding again increases the
+quantity by 1, and quantities must be whole numbers from 1 to 99. A `change`
+(as sent by the frontend's +/− buttons) is applied atomically and clamped to
+1–99, so rapid clicks are never lost. Lines are returned in the order they were
+first added.
+
+| Status | When |
+| --- | --- |
+| `400` | Invalid basket id, quantity or change, or an unknown product: `{ message, errors: [{ field, message }] }` |
+| `404` | Basket, or basket line, not found |
+| `409` | Adding a product already at the maximum quantity of 99 |
+| `415` | `POST`/`PATCH` body is not `application/json` |
+
+If a stored basket id returns `404`, the frontend should create a new basket.
 
 ### Block merges when CI fails
 

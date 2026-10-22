@@ -15,3 +15,27 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 }
+
+model Product {
+  id             String       @id @db.VarChar(100)
+  name           String       @db.VarChar(200)
+  unitPricePence Int
+  basketItems    BasketItem[]
+}
+
+model Basket {
+  id        String       @id @default(uuid())
+  createdAt DateTime     @default(now())
+  items     BasketItem[]
+}
+
+model BasketItem {
+  basketId  String
+  productId String   @db.VarChar(100)
+  quantity  Int
+  addedAt   DateTime @default(now())
+  basket    Basket   @relation(fields: [basketId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([basketId, productId])
+}
