@@ -3,8 +3,47 @@ Ctrl Alt Elite Backend
 
 ## Customer API (admin)
 
-Authentication and authorisation are not implemented yet; these endpoints are
-unprotected.
+Customer APIs require a valid login token and the current database role `ADMIN`.
+Both `/api/admin/customers` and the existing `/api/customers` URLs are protected,
+including their `/{id}` endpoints. The entire `/api/admin` namespace is protected
+for all methods, so new endpoints mounted there inherit the authorization check.
+Orders and product endpoints are not implemented by this change.
+
+### Authentication and authorization
+
+Set `JWT_SECRET` in the server environment before starting the application.
+Use a cryptographically random secret of at least 32 bytes, for example generated
+with `openssl rand -hex 32`. Keep it private, out of source control, and stable
+across server instances. Missing or short secrets prevent startup. Rotating the
+secret invalidates existing tokens. Use HTTPS outside local development.
+
+`POST /api/auth/login` with JSON email and password returns:
+
+```json
+{
+  "userId": "d397293a-53f9-4c51-aa7a-91f69eb53a75",
+  "email": "admin@example.com",
+  "role": "ADMIN",
+  "token": "<signed-jwt>"
+}
+```
+
+The frontend must send `Authorization: Bearer <token>` on each customer/admin
+request. Tokens expire after one hour; log in again to obtain a new token.
+They contain the user's identity, not an authoritative role. The server verifies
+the signature, algorithm, issuer, audience and expiry, then reads the current
+database role on every protected request. Role changes take effect immediately.
+Client-supplied role headers or request fields do not grant access.
+
+- Missing, invalid or expired token, or deleted user: `401` with
+  `{ "message": "Authentication required." }`.
+- Authenticated user without `ADMIN` (including missing/unsupported roles):
+  `403` with
+  `{ "message": "Access denied. Administrator privileges required." }`.
+- Database unavailable: logged `503`; other unexpected failures: logged `500`.
+
+Denied access attempts are logged without credentials or tokens. Health, login,
+and registration remain public. Invalid login credentials still return `401`.
 
 `GET /api/customers` accepts optional query parameters:
 
@@ -50,7 +89,13 @@ Use Node.js 22 (see [.nvmrc](.nvmrc)), then install dependencies:
 
 ```sh
 npm ci
+npm run db:generate
 ```
+
+Set `DATABASE_URL` in your local `.env` before generating the Prisma client.
+The `src/generated/` directory is ignored by Git; generate it after installation
+and whenever the Prisma schema changes. CI generates the client before building
+using a placeholder database URL; generation does not connect to PostgreSQL.
 
 Installation runs `prepare` to configure Husky's Git hooks. If dependencies are
 already installed, run `npm run prepare` once to activate the hooks.
@@ -78,8 +123,11 @@ requests opened, updated, or reopened against any branch, and on pushes to
 It uses the Node.js version from [.nvmrc](.nvmrc). Any failed command fails the
 job; failures are not ignored.
 
-`npm test` runs only the registration, customer and error-handler unit tests.
-These tests do not start a server or connect to PostgreSQL.
+`npm test` runs registration, login, customer, authorization and error-handler
+unit tests, plus HTTP integration tests using a temporary local server and a
+stubbed database. No PostgreSQL connection is required. Integration tests cover
+both protected URL forms, JWT validation, denied access, role changes and server
+failures.
 
 ### Block merges when CI fails
 
