@@ -53,7 +53,9 @@ const out_of_stock_testing = [
     description: 'Lees long lushious locks of hair.',
     price: 828938392829282,
     stock: 0,
-    image: readFileSync(new URL('./images/wavy-brown-hair.svg', import.meta.url)),
+    image: readFileSync(
+      new URL('./images/wavy-brown-hair.svg', import.meta.url),
+    ),
   },
   {
     id: '99a89432-b64d-4c54-b6af-71591fdb0a06',
@@ -63,9 +65,8 @@ const out_of_stock_testing = [
     price: 15.99,
     stock: 25,
     image: readFileSync(new URL('./images/egg-face.svg', import.meta.url)),
-  }
+  },
 ];
-
 
 const database = createDatabase();
 
@@ -95,7 +96,9 @@ try {
       update: product,
     });
   }
-  console.log(`Seeded ${out_of_stock_testing.length} out of stock testing products.`);
+  console.log(
+    `Seeded ${out_of_stock_testing.length} out of stock testing products.`,
+  );
 } finally {
   await database.$disconnect();
 }
