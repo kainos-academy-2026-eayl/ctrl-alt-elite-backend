@@ -66,6 +66,44 @@ The controller receives a service, and the service receives a repository.
 Tests can supply lightweight replacements for those dependencies. Errors
 propagate to the existing shared error handler; missing products still return
 404, and database or unsupported-image failures still return 500.
+## Customer API (admin)
+
+Authentication and authorisation are not implemented yet; these endpoints are
+unprotected.
+
+`GET /api/customers` accepts optional query parameters:
+
+| Parameter  | Description                                                                 | Default  |
+| ---------- | --------------------------------------------------------------------------- | -------- |
+| `search`   | Case-insensitive name search; every word must match a first or last name    | none     |
+| `email`    | Case-insensitive partial email match                                        | none     |
+| `sort`     | `nameAsc`, `nameDesc`, `newest` or `oldest`                                 | `newest` |
+| `page`     | Positive whole number                                                       | `1`      |
+| `pageSize` | Whole number from 1 to 100                                                  | `10`     |
+
+```json
+{
+  "customers": [
+    {
+      "id": "d397293a-53f9-4c51-aa7a-91f69eb53a75",
+      "firstName": "John",
+      "lastName": "Smith",
+      "email": "john@email.com",
+      "registrationDate": "2026-10-20"
+    }
+  ],
+  "page": 1,
+  "pageSize": 10,
+  "total": 1,
+  "totalPages": 1
+}
+```
+
+No matches returns an empty `customers` array. `GET /api/customers/{id}`
+returns `{ "customer": { ... } }` in the same shape. Errors: `400` for invalid
+query parameters, `404` for an unknown customer ID, `503` (logged) when the
+database is unreachable, and `500` (logged) for other failures. `id` is the
+existing UUID and `registrationDate` is the UTC date of the user's `createdAt`.
 
 ## Linting
 
