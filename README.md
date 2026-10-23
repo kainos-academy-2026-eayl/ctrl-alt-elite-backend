@@ -49,6 +49,24 @@ and an empty description during migration; populate these fields with your own
 catalogue content. Database failures return HTTP 500, allowing the frontend to
 show its temporary-unavailable message.
 
+## Catalogue architecture
+
+The catalogue uses separate layers so database access and product preparation
+can be tested without starting an HTTP server:
+
+- [Router](src/catalog_app.ts): creates the layers and maps URLs to handlers.
+- [Controller](src/catalog_controller.ts): reads request parameters and sends
+  HTTP status codes and JSON responses.
+- [Service](src/catalog_service.ts): prepares products for the API, including
+  converting PNG/SVG image bytes into data URLs.
+- [Repository](src/catalog_repository.ts): runs Prisma queries, selecting the
+  catalogue fields and ordering the product list by name.
+
+The controller receives a service, and the service receives a repository.
+Tests can supply lightweight replacements for those dependencies. Errors
+propagate to the existing shared error handler; missing products still return
+404, and database or unsupported-image failures still return 500.
+
 ## Linting
 
 Biome checks code formatting, recommended lint rules, and import ordering. The
@@ -93,7 +111,8 @@ before building. This step supplies a placeholder `DATABASE_URL` because
 Client generation does not connect to a database or apply migrations, so this
 step needs neither a running PostgreSQL server nor database secrets.
 
-`npm test` runs registration, error-handler and product API tests.
+`npm test` runs registration, error-handler, catalogue repository/service unit
+tests and product API tests.
 Product tests start a temporary HTTP server with a mocked database; none of
 these tests connect to PostgreSQL.
 
