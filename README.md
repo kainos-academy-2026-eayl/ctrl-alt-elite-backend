@@ -55,11 +55,11 @@ The catalogue uses separate layers so database access and product preparation
 can be tested without starting an HTTP server:
 
 - [Router](src/catalog_app.ts): creates the layers and maps URLs to handlers.
-- [Controller](prisma/controllers/catalog_controller.ts): reads request parameters and sends
+- [Controller](src/controllers/catalog_controller.ts): reads request parameters and sends
   HTTP status codes and JSON responses.
-- [Service](service/catalog_service.ts): prepares products for the API, including
+- [Service](src/service/catalog_service.ts): prepares products for the API, including
   converting PNG/SVG image bytes into data URLs.
-- [Repository](repo/catalog_repository.ts): runs Prisma queries, selecting the
+- [Repository](src/repo/catalog_repository.ts): runs Prisma queries, selecting the
   catalogue fields and ordering the product list by name.
 
 The controller receives a service, and the service receives a repository.

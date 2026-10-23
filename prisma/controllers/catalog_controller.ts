@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { CatalogService } from '../../service/catalog_service';
+import type { CatalogService } from '../../src/service/catalog_service';
 
 export function createCatalogController(service: CatalogService) {
   return {

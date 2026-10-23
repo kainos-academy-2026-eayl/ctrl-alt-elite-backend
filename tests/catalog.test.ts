@@ -3,8 +3,8 @@ import { mock, test } from 'node:test';
 import {
   type CatalogProduct,
   createCatalogRepository,
-} from '../repo/catalog_repository';
-import { createCatalogService } from '../service/catalog_service';
+} from '../src/repo/catalog_repository';
+import { createCatalogService } from '../src/service/catalog_service';
 
 const product: CatalogProduct = {
   id: 'product-123',
