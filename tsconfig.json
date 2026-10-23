@@ -23,6 +23,12 @@
     "incremental": true,
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo"
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": [
+    "src/**/*",
+    "tests/**/*",
+    "prisma/controllers/**/*",
+    "repo/**/*",
+    "service/**/*"
+  ],
   "exclude": ["node_modules", "dist"]
 }

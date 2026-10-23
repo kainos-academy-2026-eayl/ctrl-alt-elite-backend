@@ -1,7 +1,7 @@
 import express from 'express';
-import { createCatalogController } from './catalog_controller';
-import { createCatalogRepository } from './catalog_repository';
-import { createCatalogService } from './catalog_service';
+import { createCatalogController } from '../prisma/controllers/catalog_controller';
+import { createCatalogRepository } from '../repo/catalog_repository';
+import { createCatalogService } from '../service/catalog_service';
 import type { PrismaClient } from './generated/prisma/client';
 
 export function createCatalogRouter(database: PrismaClient) {

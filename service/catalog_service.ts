@@ -1,4 +1,7 @@
-import type { CatalogProduct, CatalogRepository } from './catalog_repository';
+import type {
+  CatalogProduct,
+  CatalogRepository,
+} from '../repo/catalog_repository';
 
 function serializeProduct(product: CatalogProduct) {
   const image = Buffer.from(product.image);
