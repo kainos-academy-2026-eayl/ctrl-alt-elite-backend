@@ -1,6 +1,15 @@
 import { verify } from 'argon2';
 import type { PrismaClient } from './generated/prisma/client';
 
+export const supportedRoles = ['CUSTOMER', 'ADMIN'] as const;
+export type UserRole = (typeof supportedRoles)[number];
+
+export class RoleNotDeterminedError extends Error {}
+
+function isSupportedRole(role: unknown): role is UserRole {
+  return supportedRoles.some((supported) => supported === role);
+}
+
 export async function authenticateUser(
   database: PrismaClient,
   credentials: unknown,
@@ -21,11 +30,7 @@ export async function authenticateUser(
   });
   if (!user || !(await verify(user.passwordHash, password))) return null;
 
-  return {
-    id: user.id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    createdAt: user.createdAt,
-  };
+  if (!isSupportedRole(user.role)) throw new RoleNotDeterminedError();
+
+  return { userId: user.id, email: user.email, role: user.role };
 }

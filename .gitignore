@@ -1,6 +1,6 @@
 node_modules
 dist/
 .env
-src/generated/prisma/
+src/generated/
 code_reviews/
 .vscode/tasks.json

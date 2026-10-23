@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler } from 'express';
 import { CustomerNotFoundError, CustomerValidationError } from './customers';
 import { Prisma } from './generated/prisma/client';
+import { RoleNotDeterminedError } from './login';
 import { RegistrationValidationError } from './registration';
 
 const databaseUnavailableCodes = ['P1001', 'P1002', 'P1008', 'P1017'];
@@ -22,6 +23,11 @@ export class ErrorHandler {
       res.status(400).json({ message: error.message });
     } else if (error instanceof CustomerNotFoundError) {
       res.status(404).json({ message: error.message });
+    } else if (error instanceof RoleNotDeterminedError) {
+      console.error('User role could not be determined');
+      res
+        .status(500)
+        .json({ message: 'Unable to determine the account role.' });
     } else if (isDatabaseUnavailable(error)) {
       console.error(
         'Database unavailable',

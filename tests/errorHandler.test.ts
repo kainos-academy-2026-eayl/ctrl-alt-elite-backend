@@ -7,6 +7,7 @@ import {
 } from '../src/customers';
 import { ErrorHandler } from '../src/errorHandler';
 import { Prisma } from '../src/generated/prisma/client';
+import { RoleNotDeterminedError } from '../src/login';
 import { RegistrationValidationError } from '../src/registration';
 
 function handleError(error: unknown) {
@@ -102,6 +103,16 @@ for (const error of [
     ]);
   });
 }
+
+test('returns and logs a 500 when the user role cannot be determined', (context) => {
+  const logger = context.mock.method(console, 'error', () => {});
+  const { status, json } = handleError(new RoleNotDeterminedError());
+  assert.deepEqual(status.mock.calls[0]?.arguments, [500]);
+  assert.deepEqual(json.mock.calls[0]?.arguments, [
+    { message: 'Unable to determine the account role.' },
+  ]);
+  assert.equal(logger.mock.callCount(), 1);
+});
 
 for (const error of [
   new Error('Private database connection details'),
