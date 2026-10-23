@@ -72,6 +72,7 @@ export function createAuthorization(database: PrismaClient, secret: string) {
       });
       return;
     }
+    res.locals.userId = userId;
     next();
   };
 

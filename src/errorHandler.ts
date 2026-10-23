@@ -1,4 +1,9 @@
 import type { ErrorRequestHandler } from 'express';
+import {
+  AdminNotFoundError,
+  AdminValidationError,
+  IncorrectPasswordError,
+} from './admin';
 import { CustomerNotFoundError, CustomerValidationError } from './customers';
 import { Prisma } from './generated/prisma/client';
 import { RoleNotDeterminedError } from './login';
@@ -18,10 +23,15 @@ export class ErrorHandler {
   handle: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
     if (
       error instanceof RegistrationValidationError ||
-      error instanceof CustomerValidationError
+      error instanceof CustomerValidationError ||
+      error instanceof AdminValidationError ||
+      error instanceof IncorrectPasswordError
     ) {
       res.status(400).json({ message: error.message });
-    } else if (error instanceof CustomerNotFoundError) {
+    } else if (
+      error instanceof CustomerNotFoundError ||
+      error instanceof AdminNotFoundError
+    ) {
       res.status(404).json({ message: error.message });
     } else if (error instanceof RoleNotDeterminedError) {
       console.error('User role could not be determined');

@@ -5,6 +5,11 @@ import express, {
   type Response,
   Router,
 } from 'express';
+import {
+  changeAdminPassword,
+  getAdminProfile,
+  validatePasswordChange,
+} from './admin';
 import { createAuthorization } from './authorization';
 import { getCustomer, listCustomers, validateCustomerQuery } from './customers';
 import { ErrorHandler } from './errorHandler';
@@ -65,6 +70,23 @@ export function createApp(
   });
 
   app.use('/api/admin', requireAdmin);
+
+  app.get('/api/admin/profile', async (_req: Request, res: Response) => {
+    res.json(await getAdminProfile(database, res.locals.userId));
+  });
+
+  app.put('/api/admin/change-password', async (req: Request, res: Response) => {
+    if (!req.is('application/json')) {
+      res
+        .status(415)
+        .json({ message: 'Content-Type must be application/json.' });
+      return;
+    }
+    const change = validatePasswordChange(req.body);
+    await changeAdminPassword(database, res.locals.userId, change);
+    res.json({ message: 'Password updated successfully.' });
+  });
+
   app.use('/api/admin/customers', customers);
   app.use('/api/customers', requireAdmin, customers);
 
