@@ -39,9 +39,15 @@ both processes must be running.
 
 `GET http://localhost:3001/api/products` returns `{ "products": [...] }`.
 Each product has `id`, `name`, `category`, `description`, numeric `price`, `stock`,
-and an `image` string. Images stored in the database must be PNG bytes or SVG
-documents beginning with `<svg`. The API returns a base64 data URL with the
-matching `image/png` or `image/svg+xml` media type for HTML image elements.
+and an `image` string. Images stored in the database can be PNG, JPEG or WebP
+bytes, or SVG documents beginning with `<svg`. The API detects binary formats
+from their file signatures, not filenames, and returns a base64 data URL with
+the matching `image/png`, `image/jpeg`, `image/webp` or `image/svg+xml` media type
+for HTML image elements. This is format detection, not full image validation.
+Nunjucks templates can display the returned value using
+`<img src="{{ product.image }}" alt="{{ product.name }}">`; no conversion or
+`safe` filter is needed. Existing stored JPEG/WebP images need no migration or
+re-seeding after this backend update.
 Unsupported image data is logged and returns HTTP 500 rather than a broken URL.
 The single-product endpoint, `GET /api/products/:id`, uses the same product shape
 inside `{ "product": ... }`. Existing products receive category `Uncategorised`
@@ -58,7 +64,7 @@ can be tested without starting an HTTP server:
 - [Controller](src/controllers/catalog_controller.ts): reads request parameters and sends
   HTTP status codes and JSON responses.
 - [Service](src/service/catalog_service.ts): prepares products for the API, including
-  converting PNG/SVG image bytes into data URLs.
+  converting PNG/JPEG/WebP/SVG image bytes into data URLs.
 - [Repository](src/repo/catalog_repository.ts): runs Prisma queries, selecting the
   catalogue fields and ordering the product list by name.
 

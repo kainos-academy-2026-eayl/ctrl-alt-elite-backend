@@ -61,7 +61,7 @@ const out_of_stock_testing = [
     id: '99a89432-b64d-4c54-b6af-71591fdb0a06',
     name: 'Metellica Band Shirt',
     category: 'Shirt',
-    description: "Show off you love for Metallica.",
+    description: 'Show off you love for Metallica.',
     price: 15.99,
     stock: 25,
     image: readFileSync(new URL('./images/metellica.jpg', import.meta.url)),

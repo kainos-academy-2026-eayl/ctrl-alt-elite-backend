@@ -172,6 +172,37 @@ for (const file of ['desk-lamp.svg', 'ceramic-mug.svg', 'notebook.svg']) {
   });
 }
 
+for (const [mimeType, image] of [
+  ['image/jpeg', Buffer.from('ffd8ffe000104a4649460001', 'hex')],
+  ['image/webp', Buffer.from('524946460c0000005745425056503820', 'hex')],
+] as const) {
+  test(`product endpoints return ${mimeType} data URLs with unchanged bytes`, async () => {
+    const storedProduct = { ...product, image };
+    const expected = {
+      ...storedProduct,
+      image: `data:${mimeType};base64,${image.toString('base64')}`,
+    };
+    await withServer(
+      {
+        product: {
+          findMany: async () => [product, storedProduct],
+          findUnique: async () => storedProduct,
+        },
+      },
+      async (baseUrl) => {
+        const list = await fetch(`${baseUrl}/api/products`);
+        assert.equal(list.status, 200);
+        assert.deepEqual(await list.json(), {
+          products: [expectedProduct, expected],
+        });
+        const detail = await fetch(`${baseUrl}/api/products/${product.id}`);
+        assert.equal(detail.status, 200);
+        assert.deepEqual(await detail.json(), { product: expected });
+      },
+    );
+  });
+}
+
 test('GET /api/products reports unsupported image data explicitly', async () => {
   await withServer(
     {

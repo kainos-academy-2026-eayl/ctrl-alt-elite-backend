@@ -82,6 +82,8 @@ test('repository propagates database failures from both queries', async () => {
 
 for (const [mimeType, image] of [
   ['image/png', product.image],
+  ['image/jpeg', Buffer.from('ffd8ffe000104a4649460001', 'hex')],
+  ['image/webp', Buffer.from('524946460c0000005745425056503820', 'hex')],
   ['image/svg+xml', Buffer.from('  <svg xmlns="http://www.w3.org/2000/svg"/>')],
 ] as const) {
   test(`service serializes ${mimeType} images for lists and individual products`, async () => {
@@ -119,11 +121,31 @@ test('service rejects unsupported images for both operations', async () => {
     findAll: async () => [invalidProduct],
     findById: async () => invalidProduct,
   });
-  const expected = /Product image must contain PNG or SVG data\./;
+  const expected = /Product image must contain PNG, JPEG, WebP or SVG data\./;
 
   await assert.rejects(service.getAll(), expected);
   await assert.rejects(service.getById(product.id), expected);
 });
+
+for (const [name, image] of [
+  ['empty data', Buffer.alloc(0)],
+  ['truncated JPEG signature', Buffer.from('ffd8', 'hex')],
+  ['truncated WebP header', Buffer.from('RIFF0000WEB')],
+  ['non-WebP RIFF data', Buffer.from('RIFF0000WAVE')],
+  ['WebP marker without RIFF', Buffer.from('NOPE0000WEBP')],
+] as const) {
+  test(`service rejects ${name} for lists and individual products`, async () => {
+    const invalidProduct = { ...product, image };
+    const service = createCatalogService({
+      findAll: async () => [invalidProduct],
+      findById: async () => invalidProduct,
+    });
+    const expected = /Product image must contain PNG, JPEG, WebP or SVG data\./;
+
+    await assert.rejects(service.getAll(), expected);
+    await assert.rejects(service.getById(product.id), expected);
+  });
+}
 
 test('service propagates repository failures from both operations', async () => {
   const failure = new Error('Repository unavailable');
