@@ -155,15 +155,44 @@ describe('findProducts typo handling', () => {
     assert.deepEqual(catalogueNamesFor('lmap flor'), ['Floor Lamp']);
   });
 
-  it('only corrects a word against products that matched the earlier words', () => {
+  it('only corrects a word against products that match the exact words', () => {
     // "plastr" is closest to "plaster", but only "Planter" matches "garden".
     assert.deepEqual(catalogueNamesFor('garden plastr'), ['Planter']);
+    assert.deepEqual(catalogueNamesFor('plastr garden'), ['Planter']);
+  });
+
+  it('keeps the products closest to all misspelled words, in any order', () => {
+    // "plastr" alone is closest to "plaster", but only "Planter" is near "gardn" too.
+    assert.deepEqual(catalogueNamesFor('plastr gardn'), ['Planter']);
+    assert.deepEqual(catalogueNamesFor('gardn plastr'), ['Planter']);
+  });
+
+  it('returns nothing when any misspelled word is too far from a product', () => {
+    assert.deepEqual(catalogueNamesFor('flor xyzzy'), []);
   });
 
   it('matches words inside hyphenated names', () => {
     assert.deepEqual(catalogueNamesFor('canceling'), [
       'Noise-Cancelling Headphones',
     ]);
+  });
+
+  it('corrects a typo in a whole hyphenated name', () => {
+    assert.deepEqual(catalogueNamesFor('noise-canceling'), [
+      'Noise-Cancelling Headphones',
+    ]);
+    assert.deepEqual(
+      findProducts(SAMPLE_PRODUCTS, 'noise-canceling headphones'),
+      {
+        products: [SAMPLE_PRODUCTS[3]],
+        isClosestMatch: true,
+      },
+    );
+  });
+
+  it('corrects a typo in a hyphenated keyword', () => {
+    assert.deepEqual(namesFor('over-eer'), ['Noise-Cancelling Headphones']);
+    assert.deepEqual(namesFor('in-eer'), ['Wireless Earbuds']);
   });
 
   it('uses an exact partial match instead of correcting it', () => {

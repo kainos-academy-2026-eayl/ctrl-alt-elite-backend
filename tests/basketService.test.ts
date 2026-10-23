@@ -156,6 +156,22 @@ test('should increment instead when a simultaneous add created the line first', 
   assert.equal(database.basketItem.updateMany.mock.callCount(), 2);
 });
 
+test('should retry increment when a concurrent add creates the line after the first update', async () => {
+  let updateCount = 0;
+  database.basketItem.updateMany.mock.mockImplementation(async () => ({
+    count: ++updateCount === 2 ? 1 : 0,
+  }));
+  database.basketItem.findUnique.mock.mockImplementation(async () => ({
+    quantity: 1,
+  }));
+
+  const { isNewLine } = await service.addItem(BASKET_ID, 'sample-lamp');
+
+  assert.equal(isNewLine, false);
+  assert.equal(database.basketItem.updateMany.mock.callCount(), 2);
+  assert.equal(database.basketItem.create.mock.callCount(), 0);
+});
+
 test('should set the quantity of a line in the basket', async () => {
   database.basketItem.updateMany.mock.mockImplementation(async () => ({
     count: 1,

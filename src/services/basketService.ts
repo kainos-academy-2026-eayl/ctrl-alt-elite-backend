@@ -161,6 +161,9 @@ export class BasketService {
       select: { quantity: true },
     });
     if (existing !== null) {
+      if (existing.quantity < MAX_QUANTITY) {
+        return this.incrementOrCreateLine(basketId, productId, productName);
+      }
       throw new ConflictError(maxQuantityMessage(productName));
     }
 

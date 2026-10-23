@@ -79,7 +79,11 @@ function toCandidate(product: Product): SearchCandidate {
   return {
     product,
     text,
-    tokens: text.split(/[^a-z0-9]+/).filter(Boolean),
+    // Whole words keep their hyphens so "noise-canceling" can be corrected to
+    // "noise-cancelling"; the parts still match words like "canceling".
+    tokens: [
+      ...new Set([...text.split(/\s+/), ...text.split(/[^a-z0-9]+/)]),
+    ].filter(Boolean),
   };
 }
 
@@ -89,10 +93,28 @@ function closestDistance(word: string, candidate: SearchCandidate): number {
   );
 }
 
+/** Total distance of the misspelled words to a product, or undefined if any word is too far off. */
+function typoDistance(
+  typoWords: readonly string[],
+  candidate: SearchCandidate,
+): number | undefined {
+  let total = 0;
+  for (const word of typoWords) {
+    const distance = closestDistance(word, candidate);
+    if (distance > maxTypoDistance(word) + PARTIAL_WORD_PENALTY) {
+      return undefined;
+    }
+    total += distance;
+  }
+  return total;
+}
+
 /**
  * Every word in the term must match the product name or a keyword. A word that
  * partially matches something in the catalogue is matched exactly; otherwise
- * only the products containing the closest word(s) are kept, allowing for typos.
+ * it is treated as a typo. Exact words are applied first, then only the
+ * products closest to all of the misspelled words are kept, so the order of
+ * the words does not change the results.
  */
 export function findProducts(
   products: readonly Product[],
@@ -102,36 +124,33 @@ export function findProducts(
   if (words.length === 0) return { products: [], isClosestMatch: false };
 
   const catalogue = products.map(toCandidate);
-  let candidates = catalogue;
-  let isClosestMatch = false;
+  const isExactWord = (word: string) =>
+    catalogue.some((candidate) => candidate.text.includes(word));
+  const exactWords = words.filter(isExactWord);
+  const typoWords = words.filter((word) => !isExactWord(word));
 
-  for (const word of words) {
-    if (catalogue.some((candidate) => candidate.text.includes(word))) {
-      candidates = candidates.filter((candidate) =>
-        candidate.text.includes(word),
-      );
-      continue;
-    }
-
-    isClosestMatch = true;
-    const distances = new Map(
-      candidates.map((candidate) => [
-        candidate,
-        closestDistance(word, candidate),
-      ]),
-    );
-    const closest = Math.min(...distances.values());
-    if (closest > maxTypoDistance(word) + PARTIAL_WORD_PENALTY) {
-      return { products: [], isClosestMatch: false };
-    }
-    candidates = candidates.filter(
-      (candidate) => distances.get(candidate) === closest,
-    );
+  const candidates = catalogue.filter((candidate) =>
+    exactWords.every((word) => candidate.text.includes(word)),
+  );
+  if (typoWords.length === 0) {
+    return {
+      products: candidates.map((candidate) => candidate.product),
+      isClosestMatch: false,
+    };
   }
 
+  const scored = candidates.flatMap((candidate) => {
+    const distance = typoDistance(typoWords, candidate);
+    return distance === undefined ? [] : [{ candidate, distance }];
+  });
+  const closest = Math.min(...scored.map(({ distance }) => distance));
+  const closestProducts = scored
+    .filter(({ distance }) => distance === closest)
+    .map(({ candidate }) => candidate.product);
+
   return {
-    products: candidates.map((candidate) => candidate.product),
-    isClosestMatch: isClosestMatch && candidates.length > 0,
+    products: closestProducts,
+    isClosestMatch: closestProducts.length > 0,
   };
 }
 
