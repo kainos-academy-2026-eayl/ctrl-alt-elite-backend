@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Gold desk lamp on a slate stand</title>
+  <rect width="640" height="480" fill="#edf3f7"/>
+  <ellipse cx="320" cy="414" rx="165" ry="18" fill="#d1dde5"/>
+  <path d="M333 213 280 372" fill="none" stroke="#334155" stroke-width="22" stroke-linecap="round"/>
+  <path d="m333 213 73-84" fill="none" stroke="#334155" stroke-width="18" stroke-linecap="round"/>
+  <path d="m369 106 61 44-71 94-103-74Z" fill="#e9ad3d"/>
+  <path d="m256 170 103 74" fill="none" stroke="#f9d989" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="333" cy="213" r="18" fill="#475569"/>
+  <rect x="219" y="368" width="172" height="30" rx="15" fill="#334155"/>
+  <rect x="197" y="392" width="216" height="16" rx="8" fill="#475569"/>
+</svg>
