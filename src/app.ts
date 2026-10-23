@@ -14,7 +14,15 @@ import {
 } from './admin';
 import { createAuthorization } from './authorization';
 import { createCatalogRouter } from './catalog_app';
-import { getCustomer, listCustomers, validateCustomerQuery } from './customers';
+import {
+  getCustomer,
+  listCustomers,
+  resetCustomerPassword,
+  updateCustomer,
+  validateCustomerPasswordReset,
+  validateCustomerQuery,
+  validateCustomerUpdate,
+} from './customers';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
 import { authenticateUser } from './login';
