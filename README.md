@@ -89,7 +89,13 @@ Use Node.js 22 (see [.nvmrc](.nvmrc)), then install dependencies:
 
 ```sh
 npm ci
+npm run db:generate
 ```
+
+Set `DATABASE_URL` in your local `.env` before generating the Prisma client.
+The `src/generated/` directory is ignored by Git; generate it after installation
+and whenever the Prisma schema changes. CI generates the client before building
+using a placeholder database URL; generation does not connect to PostgreSQL.
 
 Installation runs `prepare` to configure Husky's Git hooks. If dependencies are
 already installed, run `npm run prepare` once to activate the hooks.
