@@ -17,8 +17,15 @@ if (!process.env.FRONTEND_ORIGIN) {
   throw new Error('FRONTEND_ORIGIN environment variable is not set');
 }
 const database = createDatabase();
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is not set');
+}
+const app = createApp(
+  database,
+  process.env.FRONTEND_ORIGIN,
+  process.env.JWT_SECRET,
+);
 await database.$connect();
-const app = createApp(database, process.env.FRONTEND_ORIGIN);
 const server = app.listen(PORT, HOST, () => {
   console.log(`Listening on http://${HOST}:${PORT}`);
 });
