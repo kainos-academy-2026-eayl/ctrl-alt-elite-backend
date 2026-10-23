@@ -5,7 +5,7 @@ Ctrl Alt Elite Backend
 
 Run the backend on port `3001` and the frontend on port `8080`.
 Copy [.env.example](.env.example) to `.env` if needed, replace the local database
-password and set the matching `DATABASE_URL`. The backend settings are:
+password and set the matching `DATABASE_URL`. The backend settings are as follows:
 
 ```ini
 PORT=3001
