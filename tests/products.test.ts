@@ -33,6 +33,7 @@ async function withServer(
   const server = createApp(
     database as PrismaClient,
     'http://localhost:3000',
+    'test-only-secret-with-at-least-32-bytes',
   ).listen(0);
   await once(server, 'listening');
   const address = server.address() as AddressInfo;
