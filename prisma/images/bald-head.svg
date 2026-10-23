@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Illustration of a bald head</title>
+  <defs>
+    <radialGradient id="skin" cx="36%" cy="28%" r="78%">
+      <stop offset="0" stop-color="#ffe0bd"/>
+      <stop offset=".65" stop-color="#dfa476"/>
+      <stop offset="1" stop-color="#b97952"/>
+    </radialGradient>
+  </defs>
+  <g stroke="#986343" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="111" cy="279" rx="22" ry="43" fill="#d99b70"/>
+    <ellipse cx="401" cy="279" rx="22" ry="43" fill="#d99b70"/>
+    <path d="M256 49C158 49 115 119 115 216v68c0 91 67 172 141 183 74-11 141-92 141-183v-68c0-97-43-167-141-167Z" fill="url(#skin)"/>
+    <path d="M154 245q28-18 56-3M302 242q28-15 56 3" fill="none" stroke="#885b40" stroke-width="6"/>
+    <path d="M159 270q23-14 46 0M307 270q23-14 46 0" fill="none"/>
+    <ellipse cx="183" cy="270" rx="5" ry="7" fill="#45362c" stroke="none"/>
+    <ellipse cx="330" cy="270" rx="5" ry="7" fill="#45362c" stroke="none"/>
+    <path d="m255 279-13 50q13 10 29 0" fill="none" stroke="#b57953"/>
+    <path d="M218 371q38 22 76 0" fill="none"/>
+    <path d="M237 399q19 6 38 0" fill="none" stroke="#bb8059" stroke-width="3"/>
+  </g>
+  <ellipse cx="211" cy="119" rx="53" ry="28" transform="rotate(-28 211 119)" fill="#fff" opacity=".18"/>
+</svg>

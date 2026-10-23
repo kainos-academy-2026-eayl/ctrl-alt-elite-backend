@@ -1,6 +1,77 @@
 # ctrl-alt-elite-backend
 Ctrl Alt Elite Backend
 
+## Connecting the product frontend
+
+Run the backend on port `3001` and the frontend on port `8080`.
+Copy [.env.example](.env.example) to `.env` if needed, replace the local database
+password and set the matching `DATABASE_URL`. The backend settings are:
+
+```ini
+PORT=3001
+FRONTEND_ORIGIN=http://localhost:8080
+```
+
+In the frontend's `.env`, set:
+
+```ini
+PORT=8080
+BACKEND_ORIGIN=http://localhost:3001
+```
+
+Prepare the backend database and start the API:
+
+```sh
+npm run db:up
+npm run db:deploy
+npm run db:generate
+npm run db:seed
+npm run dev
+```
+
+The seed command upserts three placeholder products with bundled 640 x 480 SVG
+illustrations from [prisma/images](prisma/images); it does not delete other
+products. Re-run `npm run db:seed` to replace the old single-pixel seed images.
+The illustrations are stored in PostgreSQL, so no external image host is needed.
+Start the frontend with `npm run dev` in its own repository, then open
+`http://localhost:8080/products`. The frontend server fetches the real backend;
+both processes must be running.
+
+`GET http://localhost:3001/api/products` returns `{ "products": [...] }`.
+Each product has `id`, `name`, `category`, `description`, numeric `price`, `stock`,
+and an `image` string. Images stored in the database can be PNG, JPEG or WebP
+bytes, or SVG documents beginning with `<svg`. The API detects binary formats
+from their file signatures, not filenames, and returns a base64 data URL with
+the matching `image/png`, `image/jpeg`, `image/webp` or `image/svg+xml` media type
+for HTML image elements. This is format detection, not full image validation.
+Nunjucks templates can display the returned value using
+`<img src="{{ product.image }}" alt="{{ product.name }}">`; no conversion or
+`safe` filter is needed. Existing stored JPEG/WebP images need no migration or
+re-seeding after this backend update.
+Unsupported image data is logged and returns HTTP 500 rather than a broken URL.
+The single-product endpoint, `GET /api/products/:id`, uses the same product shape
+inside `{ "product": ... }`. Existing products receive category `Uncategorised`
+and an empty description during migration; populate these fields with your own
+catalogue content. Database failures return HTTP 500, allowing the frontend to
+show its temporary-unavailable message.
+
+## Catalogue architecture
+
+The catalogue uses separate layers so database access and product preparation
+can be tested without starting an HTTP server:
+
+- [Router](src/catalog_app.ts): creates the layers and maps URLs to handlers.
+- [Controller](src/controllers/catalog_controller.ts): reads request parameters and sends
+  HTTP status codes and JSON responses.
+- [Service](src/service/catalog_service.ts): prepares products for the API, including
+  converting PNG/JPEG/WebP/SVG image bytes into data URLs.
+- [Repository](src/repo/catalog_repository.ts): runs Prisma queries, selecting the
+  catalogue fields and ordering the product list by name.
+
+The controller receives a service, and the service receives a repository.
+Tests can supply lightweight replacements for those dependencies. Errors
+propagate to the existing shared error handler; missing products still return
+404, and database or unsupported-image failures still return 500.
 ## Customer API (admin)
 
 Customer APIs require a valid login token and the current database role `ADMIN`.
@@ -123,11 +194,16 @@ requests opened, updated, or reopened against any branch, and on pushes to
 It uses the Node.js version from [.nvmrc](.nvmrc). Any failed command fails the
 job; failures are not ignored.
 
-`npm test` runs registration, login, customer, authorization and error-handler
-unit tests, plus HTTP integration tests using a temporary local server and a
-stubbed database. No PostgreSQL connection is required. Integration tests cover
-both protected URL forms, JWT validation, denied access, role changes and server
-failures.
+The generated Prisma client is Git-ignored, so CI runs `npm run db:generate`
+before building. This step supplies a placeholder `DATABASE_URL` because
+[prisma.config.ts](prisma.config.ts) requires it when loading the config.
+Client generation does not connect to a database or apply migrations, so this
+step needs neither a running PostgreSQL server nor database secrets.
+
+`npm test` runs registration, error-handler, catalogue repository/service unit
+tests and product API tests.
+Product tests start a temporary HTTP server with a mocked database; none of
+these tests connect to PostgreSQL.
 
 ### Block merges when CI fails
 

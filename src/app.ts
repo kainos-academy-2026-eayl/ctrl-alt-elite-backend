@@ -13,15 +13,8 @@ import {
   validateProfileUpdate,
 } from './admin';
 import { createAuthorization } from './authorization';
-import {
-  getCustomer,
-  listCustomers,
-  resetCustomerPassword,
-  updateCustomer,
-  validateCustomerPasswordReset,
-  validateCustomerQuery,
-  validateCustomerUpdate,
-} from './customers';
+import { createCatalogRouter } from './catalog_app';
+import { getCustomer, listCustomers, validateCustomerQuery } from './customers';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
 import { authenticateUser } from './login';
@@ -40,6 +33,8 @@ export function createApp(
   app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
+
+  app.use('/api', createCatalogRouter(database));
 
   app.post('/api/auth/register', async (req: Request, res: Response) => {
     if (!req.is('application/json')) {

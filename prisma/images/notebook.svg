@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Purple notebook with a gold pencil</title>
+  <rect width="640" height="480" fill="#f1eef8"/>
+  <ellipse cx="320" cy="412" rx="160" ry="17" fill="#d9d1e7"/>
+  <rect x="202" y="91" width="242" height="310" rx="14" fill="#493d6e"/>
+  <rect x="207" y="84" width="230" height="307" rx="12" fill="#fcfaf5"/>
+  <rect x="196" y="76" width="234" height="307" rx="12" fill="#8070ae"/>
+  <path d="M229 76v307" stroke="#66558e" stroke-width="15"/>
+  <rect x="258" y="134" width="136" height="73" rx="7" fill="#f2e9d9"/>
+  <path d="M280 160h92m-92 21h65" stroke="#a89b8b" stroke-width="5" stroke-linecap="round"/>
+  <path d="M394 76v307" stroke="#4a3c70" stroke-width="11"/>
+  <path d="m460 177 16 5-57 196-18 18-3-26Z" fill="#e9b650"/>
+  <path d="m401 387 5 7-9 8Z" fill="#334155"/>
+</svg>
