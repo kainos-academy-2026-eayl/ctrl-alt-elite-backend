@@ -2,9 +2,15 @@ import type { ErrorRequestHandler } from 'express';
 import {
   AdminNotFoundError,
   AdminValidationError,
+  EmailAlreadyInUseError,
   IncorrectPasswordError,
+  SamePasswordError,
 } from './admin';
-import { CustomerNotFoundError, CustomerValidationError } from './customers';
+import {
+  CustomerEmailInUseError,
+  CustomerNotFoundError,
+  CustomerValidationError,
+} from './customers';
 import { Prisma } from './generated/prisma/client';
 import { RoleNotDeterminedError } from './login';
 import { RegistrationValidationError } from './registration';
@@ -20,37 +26,62 @@ function isDatabaseUnavailable(error: unknown) {
 }
 
 export class ErrorHandler {
-  handle: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
+  handle: ErrorRequestHandler = (error: unknown, req, res, _next) => {
+    const isAdminManagedEndpoint =
+      req.path === '/api/admin/profile' ||
+      req.path === '/api/admin/change-password' ||
+      /^\/api\/admin\/customers\/[^/]+(?:\/password)?$/.test(req.path);
     if (
       error instanceof RegistrationValidationError ||
       error instanceof CustomerValidationError ||
       error instanceof AdminValidationError ||
-      error instanceof IncorrectPasswordError
+      error instanceof IncorrectPasswordError ||
+      error instanceof SamePasswordError
     ) {
       res.status(400).json({ message: error.message });
+    } else if (error instanceof EmailAlreadyInUseError) {
+      res.status(409).json({ message: error.message });
     } else if (
       error instanceof CustomerNotFoundError ||
       error instanceof AdminNotFoundError
     ) {
       res.status(404).json({ message: error.message });
     } else if (error instanceof RoleNotDeterminedError) {
-      console.error('User role could not be determined');
-      res
-        .status(500)
-        .json({ message: 'Unable to determine the account role.' });
+      if (isAdminManagedEndpoint) {
+        console.error('User role could not be determined', error);
+      } else {
+        console.error('User role could not be determined');
+      }
+      res.status(500).json({
+        message: isAdminManagedEndpoint
+          ? 'Something went wrong.'
+          : 'Unable to determine the account role.',
+      });
     } else if (isDatabaseUnavailable(error)) {
       console.error(
         'Database unavailable',
-        error instanceof Error ? error.name : 'Unknown error',
+        isAdminManagedEndpoint
+          ? error
+          : error instanceof Error
+            ? error.name
+            : 'Unknown error',
       );
-      res.status(503).json({ message: 'Service temporarily unavailable.' });
+      res.status(isAdminManagedEndpoint ? 500 : 503).json({
+        message: isAdminManagedEndpoint
+          ? 'Something went wrong.'
+          : 'Service temporarily unavailable.',
+      });
+    } else if (error instanceof CustomerEmailInUseError) {
+      res.status(409).json({ message: error.message });
     } else if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === 'P2002'
     ) {
-      res
-        .status(409)
-        .json({ message: 'An account with this email already exists.' });
+      res.status(409).json({
+        message: isAdminManagedEndpoint
+          ? 'Email is already in use.'
+          : 'An account with this email already exists.',
+      });
     } else if (
       error instanceof SyntaxError &&
       'type' in error &&
@@ -68,9 +99,17 @@ export class ErrorHandler {
     } else {
       console.error(
         'Request failed',
-        error instanceof Error ? error.name : 'Unknown error',
+        isAdminManagedEndpoint
+          ? error
+          : error instanceof Error
+            ? error.name
+            : 'Unknown error',
       );
-      res.status(500).json({ message: 'Unable to complete the request.' });
+      res.status(500).json({
+        message: isAdminManagedEndpoint
+          ? 'Something went wrong.'
+          : 'Unable to complete the request.',
+      });
     }
   };
 }

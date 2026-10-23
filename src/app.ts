@@ -8,10 +8,20 @@ import express, {
 import {
   changeAdminPassword,
   getAdminProfile,
+  updateAdminProfile,
   validatePasswordChange,
+  validateProfileUpdate,
 } from './admin';
 import { createAuthorization } from './authorization';
-import { getCustomer, listCustomers, validateCustomerQuery } from './customers';
+import {
+  getCustomer,
+  listCustomers,
+  resetCustomerPassword,
+  updateCustomer,
+  validateCustomerPasswordReset,
+  validateCustomerQuery,
+  validateCustomerUpdate,
+} from './customers';
 import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
 import { authenticateUser } from './login';
@@ -69,10 +79,46 @@ export function createApp(
     res.json({ customer: await getCustomer(database, String(req.params.id)) });
   });
 
+  customers.put('/:id', async (req: Request, res: Response) => {
+    if (!req.is('application/json')) {
+      res
+        .status(415)
+        .json({ message: 'Content-Type must be application/json.' });
+      return;
+    }
+    const customer = validateCustomerUpdate(req.body);
+    res.json({
+      customer: await updateCustomer(database, String(req.params.id), customer),
+    });
+  });
+
+  customers.put('/:id/password', async (req: Request, res: Response) => {
+    if (!req.is('application/json')) {
+      res
+        .status(415)
+        .json({ message: 'Content-Type must be application/json.' });
+      return;
+    }
+    const change = validateCustomerPasswordReset(req.body);
+    await resetCustomerPassword(database, String(req.params.id), change);
+    res.json({ message: 'Password reset successfully.' });
+  });
+
   app.use('/api/admin', requireAdmin);
 
   app.get('/api/admin/profile', async (_req: Request, res: Response) => {
     res.json(await getAdminProfile(database, res.locals.userId));
+  });
+
+  app.put('/api/admin/profile', async (req: Request, res: Response) => {
+    if (!req.is('application/json')) {
+      res
+        .status(415)
+        .json({ message: 'Content-Type must be application/json.' });
+      return;
+    }
+    const profile = validateProfileUpdate(req.body);
+    res.json(await updateAdminProfile(database, res.locals.userId, profile));
   });
 
   app.put('/api/admin/change-password', async (req: Request, res: Response) => {

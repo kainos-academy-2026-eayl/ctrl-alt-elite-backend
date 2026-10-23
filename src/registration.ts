@@ -5,7 +5,7 @@ import type { PrismaClient } from './generated/prisma/client';
 const nameMessage =
   'First and last names are required and must be at most 100 characters.';
 const emailMessage = 'Please enter a valid email address.';
-const passwordMessage =
+export const passwordMessage =
   'Use 8 to 128 characters, including a digit and one of: @, \u00a3, $, %, &.';
 const confirmationMessage = 'Passwords do not match.';
 const nameSchema = z
@@ -13,6 +13,13 @@ const nameSchema = z
   .trim()
   .min(1, nameMessage)
   .max(100, nameMessage);
+
+export const passwordSchema = z
+  .string({ error: passwordMessage })
+  .min(8, passwordMessage)
+  .max(128, passwordMessage)
+  .regex(/\d/, passwordMessage)
+  .regex(/[@\u00a3$%&]/, passwordMessage);
 
 export const registrationSchema = z
   .object(
@@ -25,12 +32,7 @@ export const registrationSchema = z
         .max(254, emailMessage)
         .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, emailMessage)
         .toLowerCase(),
-      password: z
-        .string({ error: passwordMessage })
-        .min(8, passwordMessage)
-        .max(128, passwordMessage)
-        .regex(/\d/, passwordMessage)
-        .regex(/[@\u00a3$%&]/, passwordMessage),
+      password: passwordSchema,
       confirmPassword: z.string({ error: confirmationMessage }),
     },
     {

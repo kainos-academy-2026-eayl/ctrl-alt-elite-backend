@@ -1,5 +1,7 @@
+import { hash } from 'argon2';
 import { z } from 'zod';
-import type { PrismaClient } from './generated/prisma/client';
+import { Prisma, type PrismaClient } from './generated/prisma/client';
+import { passwordMessage, passwordSchema } from './registration';
 
 export const defaultPageSize = 10;
 export const maxPageSize = 100;
@@ -10,6 +12,10 @@ const emailMessage = 'email must be a string of at most 254 characters.';
 const pageMessage = 'page must be a positive whole number.';
 const pageSizeMessage = `pageSize must be a whole number between 1 and ${maxPageSize}.`;
 const sortMessage = `sort must be one of: ${sortOptions.join(', ')}.`;
+const firstNameMessage = 'First name is required.';
+const lastNameMessage = 'Last name must be 100 characters or fewer.';
+const updateEmailMessage = 'Enter a valid email address.';
+const customerPasswordMessage = 'New password and confirmation are required.';
 
 const optionalText = (message: string, max: number) =>
   z
@@ -47,6 +53,64 @@ export class CustomerNotFoundError extends Error {
     super('Customer not found.');
   }
 }
+export class CustomerEmailInUseError extends Error {
+  constructor() {
+    super('Email is already in use.');
+  }
+}
+
+function throwIfCustomerWasDeleted(error: unknown): never {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2025'
+  ) {
+    throw new CustomerNotFoundError();
+  }
+  throw error;
+}
+
+export const customerUpdateSchema = z.object(
+  {
+    firstName: z
+      .string({ error: firstNameMessage })
+      .trim()
+      .min(1, firstNameMessage)
+      .max(100, 'First name must be 100 characters or fewer.'),
+    lastName: z
+      .string({ error: lastNameMessage })
+      .trim()
+      .max(100, lastNameMessage)
+      .optional(),
+    email: z
+      .string({ error: updateEmailMessage })
+      .trim()
+      .min(1, updateEmailMessage)
+      .max(254, updateEmailMessage)
+      .email(updateEmailMessage)
+      .toLowerCase(),
+  },
+  { error: 'Customer details are required.' },
+);
+
+export const customerPasswordResetSchema = z
+  .object(
+    {
+      newPassword: z
+        .string({ error: customerPasswordMessage })
+        .min(1, customerPasswordMessage),
+      confirmPassword: z
+        .string({ error: customerPasswordMessage })
+        .min(1, customerPasswordMessage),
+    },
+    { error: customerPasswordMessage },
+  )
+  .refine((change) => change.newPassword === change.confirmPassword, {
+    message: 'The new password and confirmation do not match.',
+    path: ['confirmPassword'],
+  });
+
+export type CustomerUpdate = z.infer<typeof customerUpdateSchema>;
+export type CustomerPasswordReset = z.infer<typeof customerPasswordResetSchema>;
 
 export function validateCustomerQuery(query: unknown): CustomerQuery {
   const result = customerQuerySchema.safeParse(query);
@@ -55,7 +119,28 @@ export function validateCustomerQuery(query: unknown): CustomerQuery {
       result.error.issues[0]?.message ?? 'Invalid customer query.',
     );
   }
+  return result.data;
+}
 
+export function validateCustomerUpdate(body: unknown): CustomerUpdate {
+  const result = customerUpdateSchema.safeParse(body);
+  if (!result.success) {
+    throw new CustomerValidationError(
+      result.error.issues[0]?.message ?? 'Invalid customer details.',
+    );
+  }
+  return result.data;
+}
+
+export function validateCustomerPasswordReset(
+  body: unknown,
+): CustomerPasswordReset {
+  const result = customerPasswordResetSchema.safeParse(body);
+  if (!result.success) {
+    throw new CustomerValidationError(
+      result.error.issues[0]?.message ?? 'Invalid password details.',
+    );
+  }
   return result.data;
 }
 
@@ -153,4 +238,70 @@ export async function getCustomer(database: PrismaClient, id: string) {
   }
 
   return toCustomer(record);
+}
+
+export async function updateCustomer(
+  database: PrismaClient,
+  id: string,
+  customer: CustomerUpdate,
+) {
+  const existing = await database.user.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!existing) throw new CustomerNotFoundError();
+
+  const duplicate = await database.user.findFirst({
+    where: {
+      id: { not: id },
+      email: { equals: customer.email, mode: 'insensitive' },
+    },
+    select: { id: true },
+  });
+  if (duplicate) throw new CustomerEmailInUseError();
+
+  let record: CustomerRecord;
+  try {
+    record = await database.user.update({
+      where: { id },
+      data: {
+        firstName: customer.firstName,
+        ...(customer.lastName !== undefined
+          ? { lastName: customer.lastName }
+          : {}),
+        email: customer.email,
+      },
+      select: customerSelect,
+    });
+  } catch (error) {
+    throwIfCustomerWasDeleted(error);
+  }
+  return toCustomer(record);
+}
+
+export async function resetCustomerPassword(
+  database: PrismaClient,
+  id: string,
+  change: CustomerPasswordReset,
+) {
+  const existing = await database.user.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!existing) throw new CustomerNotFoundError();
+
+  const passwordResult = passwordSchema.safeParse(change.newPassword);
+  if (!passwordResult.success) {
+    throw new CustomerValidationError(
+      passwordResult.error.issues[0]?.message ?? passwordMessage,
+    );
+  }
+  try {
+    await database.user.update({
+      where: { id },
+      data: { passwordHash: await hash(change.newPassword) },
+    });
+  } catch (error) {
+    throwIfCustomerWasDeleted(error);
+  }
 }
