@@ -87,6 +87,12 @@ requests opened, updated, or reopened against any branch, and on pushes to
 It uses the Node.js version from [.nvmrc](.nvmrc). Any failed command fails the
 job; failures are not ignored.
 
+The generated Prisma client is Git-ignored, so CI runs `npm run db:generate`
+before building. This step supplies a placeholder `DATABASE_URL` because
+[prisma.config.ts](prisma.config.ts) requires it when loading the config.
+Client generation does not connect to a database or apply migrations, so this
+step needs neither a running PostgreSQL server nor database secrets.
+
 `npm test` runs registration, error-handler and product API tests.
 Product tests start a temporary HTTP server with a mocked database; none of
 these tests connect to PostgreSQL.
