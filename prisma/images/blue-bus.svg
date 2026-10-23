@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650" role="img" aria-labelledby="title">
+  <title id="title">Blue bus</title>
+  <defs>
+    <linearGradient id="paint" x2=".2" y2="1"><stop stop-color="#70ccff"/><stop offset=".45" stop-color="#1985df"/><stop offset="1" stop-color="#124587"/></linearGradient>
+    <linearGradient id="glass" x2=".7" y2="1"><stop stop-color="#15334e"/><stop offset="1" stop-color="#91c9da"/></linearGradient>
+  </defs>
+  <rect width="1000" height="650" rx="30" fill="#e9f4fa"/>
+  <ellipse cx="500" cy="536" rx="416" ry="31" fill="#243e55" opacity=".16"/>
+  <g stroke-linejoin="round">
+    <path d="M85 205q0-45 45-45h660q45 0 60 48l58 159v127q0 23-25 23H108q-23 0-23-23Z" fill="url(#paint)" stroke="#174e83" stroke-width="4"/>
+    <path d="M111 189h662q31 0 41 31H108Z" fill="#a2e1ff" opacity=".55"/>
+    <rect x="260" y="182" width="350" height="35" rx="6" fill="#162f41"/>
+    <text x="435" y="207" text-anchor="middle" font-family="monospace" font-size="22" letter-spacing="3" fill="#ffdf91">42 SUNNY SIDE</text>
+    <g fill="url(#glass)" stroke="#b6d8e8" stroke-width="4">
+      <rect x="114" y="237" width="112" height="140" rx="5"/>
+      <rect x="238" y="237" width="112" height="140" rx="5"/>
+      <rect x="362" y="237" width="112" height="140" rx="5"/>
+      <rect x="486" y="237" width="112" height="140" rx="5"/>
+      <path d="M745 237h73l50 140H745Z"/>
+    </g>
+    <g fill="#fff" opacity=".17"><path d="m120 243 60 0-60 96Z"/><path d="m244 243 60 0-60 96Z"/><path d="m368 243 60 0-60 96Z"/><path d="m492 243 60 0-60 96Z"/></g>
+    <rect x="625" y="237" width="94" height="260" rx="5" fill="#123a60" stroke="#c5dfec" stroke-width="3"/>
+    <g fill="url(#glass)"><path d="M635 249h29v155h-29Z"/><path d="M679 249h29v155h-29Z"/></g>
+    <path d="M672 240v254m-35-22h69m-69 12h69" stroke="#83abc5" stroke-width="3"/>
+    <path d="M98 418h514m119 0h162" stroke="#c9ebf9" stroke-width="12"/>
+    <path d="M98 490h510m128 0h157" stroke="#163b62" stroke-width="18"/>
+    <g fill="#182737" stroke="#101e2a" stroke-width="5"><circle cx="249" cy="503" r="65"/><circle cx="798" cy="503" r="65"/></g>
+    <g fill="#a7bac7" stroke="#455e70" stroke-width="8"><circle cx="249" cy="503" r="39"/><circle cx="798" cy="503" r="39"/></g>
+    <g fill="#3e5669"><circle cx="249" cy="503" r="14"/><circle cx="798" cy="503" r="14"/></g>
+    <g stroke="#4b6478" stroke-width="7" stroke-linecap="round"><path d="M249 477v1m0 50v1m-26-26h1m50 0h1M798 477v1m0 50v1m-26-26h1m50 0h1"/></g>
+    <rect x="854" y="437" width="36" height="25" rx="6" fill="#fff0b9" stroke="#cab987" stroke-width="2"/>
+    <rect x="100" y="441" width="14" height="27" rx="4" fill="#ef9366"/>
+    <path d="M866 265h46v42" fill="none" stroke="#244b6c" stroke-width="7"/>
+    <rect x="902" y="292" width="20" height="45" rx="6" fill="#244b6c"/>
+    <path d="M133 447h49m-49 12h49m-49 12h49" stroke="#164a7c" stroke-width="4"/>
+  </g>
+</svg>

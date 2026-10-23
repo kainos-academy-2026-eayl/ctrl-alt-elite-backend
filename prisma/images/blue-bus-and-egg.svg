@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1000" viewBox="0 0 1400 1000" role="img" aria-labelledby="title description">
+  <title id="title">A blue bus and an egg with a detailed face</title>
+  <desc id="description">A glossy blue bus sits on a sunlit road beside a large ivory egg with expressive blue eyes, individually drawn eyebrows, a sculpted nose, rosy cheeks, and a smiling mouth.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1">
+      <stop stop-color="#b7dff4"/><stop offset="1" stop-color="#f8eee0"/>
+    </linearGradient>
+    <linearGradient id="bus" x2=".2" y2="1">
+      <stop stop-color="#53b6fa"/><stop offset=".45" stop-color="#177bd2"/><stop offset="1" stop-color="#124c99"/>
+    </linearGradient>
+    <linearGradient id="glass" x2=".7" y2="1">
+      <stop stop-color="#153b5f"/><stop offset=".5" stop-color="#39728c"/><stop offset="1" stop-color="#b0d5de"/>
+    </linearGradient>
+    <radialGradient id="shell" cx=".32" cy=".25" r=".85">
+      <stop stop-color="#fffdf0"/><stop offset=".48" stop-color="#f7e8cc"/><stop offset=".8" stop-color="#dac29e"/><stop offset="1" stop-color="#a88969"/>
+    </radialGradient>
+    <radialGradient id="iris">
+      <stop stop-color="#152d3b"/><stop offset=".36" stop-color="#1e6381"/><stop offset=".7" stop-color="#71bfc9"/><stop offset="1" stop-color="#254a61"/>
+    </radialGradient>
+    <radialGradient id="blush">
+      <stop stop-color="#d58476" stop-opacity=".6"/><stop offset="1" stop-color="#e8ae94" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="nose" x2="1" y2=".4">
+      <stop stop-color="#e1c09a"/><stop offset=".5" stop-color="#fff0d3"/><stop offset="1" stop-color="#b98c6b"/>
+    </linearGradient>
+    <linearGradient id="lip" x2="0" y2="1">
+      <stop stop-color="#a36055"/><stop offset="1" stop-color="#df9b83"/>
+    </linearGradient>
+    <filter id="shadow" x="-.3" y="-.5" width="1.6" height="2">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <pattern id="speckles" width="43" height="39" patternUnits="userSpaceOnUse">
+      <circle cx="9" cy="12" r="1" fill="#997b5d" opacity=".14"/>
+      <circle cx="29" cy="30" r=".7" fill="#fff" opacity=".5"/>
+      <circle cx="37" cy="8" r=".8" fill="#997b5d" opacity=".12"/>
+    </pattern>
+    <path id="egg" d="M1088 190C1010 190 891 421 891 588c0 133 78 218 197 218s197-85 197-218c0-167-119-398-197-398Z"/>
+    <clipPath id="eggClip"><use href="#egg"/></clipPath>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1400v1000H0z"/>
+  <g fill="#fff" opacity=".55">
+    <ellipse cx="258" cy="181" rx="146" ry="25"/><ellipse cx="210" cy="164" rx="74" ry="38"/>
+    <ellipse cx="713" cy="117" rx="117" ry="22"/><ellipse cx="750" cy="101" rx="60" ry="31"/>
+  </g>
+  <path d="M0 650q160-110 336-25t334-27 340 18 390-35v419H0Z" fill="#b2c4aa"/>
+  <path d="M0 751q700-63 1400 0v249H0Z" fill="#747f89"/>
+  <path d="M0 895h1400" stroke="#fff1c5" stroke-width="9" stroke-dasharray="105 75"/>
+  <ellipse cx="463" cy="801" rx="368" ry="30" fill="#253a4b" opacity=".3" filter="url(#shadow)"/>
+  <ellipse cx="1091" cy="807" rx="185" ry="24" fill="#253a4b" opacity=".3" filter="url(#shadow)"/>
+  <!-- Blue bus -->
+  <g stroke-linejoin="round">
+    <path d="M115 414q0-45 45-45h559q49 0 65 53l43 154v173q0 20-24 20H139q-24 0-24-24Z" fill="url(#bus)" stroke="#164c83" stroke-width="4"/>
+    <path d="M143 398h557q43 0 54 40H138v-25q0-15 5-15Z" fill="#86ceff" opacity=".5"/>
+    <rect x="145" y="451" width="434" height="137" rx="12" fill="#172f43" stroke="#a9d8ec" stroke-width="3"/>
+    <g fill="url(#glass)" stroke="#a2b9c3" stroke-width="4">
+      <path d="M155 462h93v115h-93Z"/><path d="M258 462h93v115h-93Z"/>
+      <path d="M361 462h93v115h-93Z"/><path d="M464 462h103v115H464Z"/>
+      <path d="M681 454h71l35 127H681Z"/>
+    </g>
+    <g fill="#edfaff" opacity=".18">
+      <path d="m158 464 51 0-51 78Z"/><path d="m262 464 52 0-52 78Z"/>
+      <path d="m365 464 50 0-50 78Z"/><path d="m468 464 53 0-53 78Z"/>
+      <path d="m689 459 40 0-40 78Z"/>
+    </g>
+    <rect x="597" y="449" width="67" height="284" rx="7" fill="#133e64" stroke="#a9cee2" stroke-width="3"/>
+    <path d="M605 460h22v153h-22Zm30 0h21v153h-21Z" fill="url(#glass)"/>
+    <path d="M631 451v278" stroke="#8bb2cc" stroke-width="3"/>
+    <path d="M605 699h51m-51 13h51m-51 13h51" stroke="#82a1b3" stroke-width="3"/>
+    <rect x="251" y="400" width="296" height="34" rx="7" fill="#12293a"/>
+    <text x="399" y="424" text-anchor="middle" fill="#ffdf8d" font-family="monospace" font-size="20" letter-spacing="3">42  SUNNY SIDE</text>
+    <path d="M128 627h456m88 0h133" stroke="#c4e9fa" stroke-width="11"/>
+    <path d="M128 648h456m88 0h140" stroke="#1162ac" stroke-width="4"/>
+    <path d="M134 731h449m91 0h128" stroke="#153d64" stroke-width="19"/>
+    <g fill="#152638" stroke="#102030" stroke-width="5">
+      <circle cx="260" cy="750" r="61"/><circle cx="707" cy="750" r="61"/>
+    </g>
+    <g fill="#9eafbc" stroke="#3e5363" stroke-width="7">
+      <circle cx="260" cy="750" r="36"/><circle cx="707" cy="750" r="36"/>
+    </g>
+    <g fill="#475f72">
+      <circle cx="260" cy="750" r="13"/><circle cx="707" cy="750" r="13"/>
+      <circle cx="260" cy="726" r="4"/><circle cx="260" cy="774" r="4"/><circle cx="236" cy="750" r="4"/><circle cx="284" cy="750" r="4"/>
+      <circle cx="707" cy="726" r="4"/><circle cx="707" cy="774" r="4"/><circle cx="683" cy="750" r="4"/><circle cx="731" cy="750" r="4"/>
+    </g>
+    <rect x="770" y="651" width="37" height="23" rx="7" fill="#fff3c7" stroke="#c3aa72" stroke-width="2"/>
+    <rect x="128" y="656" width="15" height="27" rx="4" fill="#e38b64"/>
+    <path d="M793 485h33v53" fill="none" stroke="#173e60" stroke-width="7"/>
+    <rect x="815" y="519" width="20" height="40" rx="7" fill="#244561"/>
+    <g stroke="#133e66" stroke-width="4"><path d="M160 672h57m-57 10h57m-57 10h57"/></g>
+  </g>
+  <!-- Egg portrait -->
+  <use href="#egg" fill="url(#shell)" stroke="#bda17f" stroke-width="3"/>
+  <g clip-path="url(#eggClip)">
+    <path d="M850 180h470v650H850Z" fill="url(#speckles)"/>
+    <ellipse cx="1004" cy="607" rx="66" ry="53" fill="url(#blush)"/>
+    <ellipse cx="1181" cy="607" rx="66" ry="53" fill="url(#blush)"/>
+    <path d="M965 501q42-37 89-6m69 0q47-30 89 6" fill="none" stroke="#b79574" stroke-width="3"/>
+    <path d="M971 486q43-30 80-7m77 0q39-23 78 7" fill="none" stroke="#665145" stroke-width="9" stroke-linecap="round"/>
+    <g fill="none" stroke="#4c4039" stroke-width="1.6" stroke-linecap="round">
+      <path d="m976 484 4-9m4 6 5-11m4 9 4-12m5 10 4-12m5 11 4-10m5 11 4-9m5 11 4-8m5 12 4-7"/>
+      <path d="m1133 480 4-7m4 5 4-9m5 9 4-12m5 11 4-12m5 13 4-11m5 13 4-10m4 12 4-8m4 11 4-7"/>
+    </g>
+    <path d="M968 536q43-43 88 0-43 37-88 0Z" fill="#fff9ed" stroke="#98785e" stroke-width="2.5"/>
+    <path d="M1121 536q43-43 88 0-43 37-88 0Z" fill="#fff9ed" stroke="#98785e" stroke-width="2.5"/>
+    <g fill="url(#iris)" stroke="#344c50" stroke-width="1.5">
+      <circle cx="1016" cy="534" r="21"/><circle cx="1160" cy="534" r="21"/>
+    </g>
+    <g stroke="#c4e6db" stroke-width="1" opacity=".65" fill="none">
+      <path d="m1016 515 0 8m10-5-4 7m11 1-8 4m9 9-9-2m3 11-6-7m-10 11 2-10m-12 6 7-9m-11-7 9 1m-5-12 7 8"/>
+      <path d="m1160 515 0 8m10-5-4 7m11 1-8 4m9 9-9-2m3 11-6-7m-10 11 2-10m-12 6 7-9m-11-7 9 1m-5-12 7 8"/>
+    </g>
+    <g fill="#15272d"><circle cx="1016" cy="534" r="10"/><circle cx="1160" cy="534" r="10"/></g>
+    <g fill="#fff">
+      <circle cx="1010" cy="527" r="5"/><circle cx="1154" cy="527" r="5"/>
+      <circle cx="1022" cy="540" r="2"/><circle cx="1166" cy="540" r="2"/>
+    </g>
+    <g fill="none" stroke-linecap="round">
+      <path d="M968 536q43-43 88 0m65 0q43-43 88 0" stroke="#665144" stroke-width="3"/>
+      <path d="M976 560q36 22 70 0m86 0q36 22 68 0" stroke="#c2a283" stroke-width="2"/>
+      <path d="m971 530-8-6m17-3-6-8m220 17 8-6m-17-3 6-8" stroke="#665144" stroke-width="2"/>
+      <path d="M1075 467q13-5 26 0m-21-12q9-3 17 0" stroke="#c9ac8b" stroke-width="2"/>
+    </g>
+    <path d="M1081 538c-2 22-11 42-16 56-7 17 2 26 22 26 21 0 30-9 22-24-7-14-11-36-12-58" fill="url(#nose)" stroke="#c6a27d" stroke-width="1.5"/>
+    <path d="M1070 608q6-5 12 0m13 0q6-5 11 0" fill="none" stroke="#8c6953" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="1086" cy="588" rx="8" ry="16" fill="#fff5db" opacity=".55"/>
+    <path d="M1081 629q7 8 14 0" fill="none" stroke="#be9677" stroke-width="2"/>
+    <path d="M1030 658q29-8 46-13l12 6 12-6q20 8 46 13-55 64-116 0Z" fill="url(#lip)" stroke="#9b6b59" stroke-width="2"/>
+    <path d="M1035 659q54 13 106 0-52 42-106 0Z" fill="#553d37"/>
+    <path d="M1042 661q47 9 91 0l-10 13q-35 8-71 0Z" fill="#fff8e8"/>
+    <path d="m1067 665 1 10m19-9v11m18-11-1 9" stroke="#d8c7af" stroke-width="1"/>
+    <path d="M1064 691q24 7 47-1" fill="none" stroke="#f4c2a4" stroke-width="3" stroke-linecap="round"/>
+    <path d="M1020 645q-12 14-6 27m141-27q12 14 6 27" fill="none" stroke="#b48e6e" stroke-width="2"/>
+    <path d="M1052 728q37 11 73-1" fill="none" stroke="#bda181" stroke-width="2"/>
+    <g fill="#a98667" opacity=".4">
+      <circle cx="985" cy="587" r="1.8"/><circle cx="999" cy="594" r="1.3"/><circle cx="1010" cy="583" r="1.5"/><circle cx="1024" cy="594" r="1.2"/>
+      <circle cx="1151" cy="594" r="1.3"/><circle cx="1167" cy="583" r="1.8"/><circle cx="1183" cy="596" r="1.5"/><circle cx="1196" cy="586" r="1.2"/>
+    </g>
+    <path d="M973 391q29-99 74-147" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round" opacity=".25"/>
+  </g>
+</svg>

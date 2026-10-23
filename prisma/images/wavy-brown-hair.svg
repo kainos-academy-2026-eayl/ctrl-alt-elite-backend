@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="900" viewBox="0 0 800 900" role="img" aria-labelledby="title description">
+  <title id="title">Wavy brown hair</title>
+  <desc id="description">Long chestnut brown hair with flowing waves, caramel highlights, a side part and an open face area on a transparent background.</desc>
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2=".7">
+      <stop stop-color="#25150f"/><stop offset=".3" stop-color="#75442b"/>
+      <stop offset=".55" stop-color="#4c2b1c"/><stop offset=".8" stop-color="#8c5534"/><stop offset="1" stop-color="#2c1912"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#321d15"/><stop offset=".35" stop-color="#995f39"/>
+      <stop offset=".52" stop-color="#b57a4b"/><stop offset=".75" stop-color="#714027"/><stop offset="1" stop-color="#321d15"/>
+    </linearGradient>
+    <linearGradient id="crown" x1="0" y1="0" x2=".8" y2="1">
+      <stop stop-color="#3c2319"/><stop offset=".4" stop-color="#915c38"/><stop offset=".65" stop-color="#663b25"/><stop offset="1" stop-color="#301b14"/>
+    </linearGradient>
+  </defs>
+  <path d="M403 68C235 40 132 151 135 317c2 83-53 137-26 222 25 78-37 125 7 199 24 40 57 57 62 92 48-11 88-48 107-94 21-51-3-91 5-142 12-73-1-121-10-180-10-72 17-145 78-171 74-31 151 9 166 85 13 67-12 125-1 186 10 59-17 107 1 162 16 51 62 84 110 109 1-43 53-65 53-117 0-55-27-72-11-125 23-78-18-128-13-211C675 164 573 47 403 68Z" fill="url(#base)" stroke="#301b14" stroke-width="4"/>
+  <path d="M336 112C224 139 171 225 193 326c20 90-58 137-36 220 19 72-29 128 18 192 16 23 25 43 22 66 69-50 59-108 42-157-20-58 28-101 11-166-22-84 29-134 13-202-15-65 18-123 73-167Z" fill="url(#wave)"/>
+  <path d="M489 119c97 20 151 105 126 211-21 87 58 137 34 222-20 74 25 115-13 185-14 25-26 42-21 66-77-49-62-111-44-160 22-59-25-103-9-169 18-77-27-129-12-196 15-65-14-118-61-159Z" fill="url(#wave)"/>
+  <path d="M424 83c-39-12-98-7-149 18-95 45-124 147-115 239 26-20 66-28 100-55 35-29 56-80 99-108 27-18 52-23 76-28 16-30 11-50-11-66Z" fill="url(#crown)"/>
+  <path d="M424 83c75-7 150 39 181 94 29 50 38 112 29 163-31-25-66-33-93-62-29-32-35-68-64-98-17-17-34-25-52-31 13-24 13-45-1-66Z" fill="url(#crown)"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M418 92q-18 20-2 49" stroke="#25160f" stroke-width="6"/>
+    <g stroke="#d29a63" opacity=".56">
+      <path d="M395 100c-90 0-175 75-190 155" stroke-width="5"/>
+      <path d="M382 119c-75 15-111 82-151 126" stroke-width="3"/>
+      <path d="M450 104c72 8 129 73 145 142" stroke-width="5"/>
+      <path d="M455 126c55 19 65 76 105 115" stroke-width="3"/>
+      <path d="M210 303c35 88-53 141-28 226s-17 126 20 189" stroke-width="7"/>
+      <path d="M239 324c19 71-43 111-24 186 20 78-22 112 6 172" stroke-width="3"/>
+      <path d="M594 306c-34 82 53 138 29 224-22 78 21 122-16 190" stroke-width="7"/>
+      <path d="M565 329c-19 69 44 110 25 185-20 76 23 112-6 172" stroke-width="3"/>
+    </g>
+    <g stroke="#24150f" opacity=".52" stroke-width="3">
+      <path d="M362 100c-84 20-147 84-175 172"/>
+      <path d="M337 126c-64 31-91 100-135 137"/>
+      <path d="M477 108c62 27 100 79 124 149"/>
+      <path d="M179 354c10 62-45 115-22 182 23 66-13 112 14 163"/>
+      <path d="M248 390c-25 49-23 80-10 119 14 43-17 83-5 123"/>
+      <path d="M627 355c-9 64 45 114 21 184-23 65 12 107-13 161"/>
+      <path d="M559 389c24 49 23 82 10 120-14 43 17 81 5 122"/>
+    </g>
+    <g stroke="#e3b780" opacity=".35" stroke-width="2">
+      <path d="M384 104c-68 7-126 55-153 103"/>
+      <path d="M458 110c49 12 89 55 108 88"/>
+      <path d="M190 410c-9 38-26 67-13 107"/>
+      <path d="M612 413c11 38 26 66 14 107"/>
+      <path d="M194 581c-10 34-11 62 1 90"/>
+      <path d="M611 581c10 32 10 62-2 90"/>
+    </g>
+  </g>
+</svg>

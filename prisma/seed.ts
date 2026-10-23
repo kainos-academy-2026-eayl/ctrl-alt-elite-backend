@@ -45,6 +45,28 @@ const testing_product_upload = [
   },
 ];
 
+const out_of_stock_testing = [
+  {
+    id: '99a89432-b64d-4c54-b6af-71591fdb0a05',
+    name: "Lee's Hair",
+    category: 'Home',
+    description: 'Lees long lushious locks of hair.',
+    price: 828938392829282,
+    stock: 0,
+    image: readFileSync(new URL('./images/wavy-brown-hair.svg', import.meta.url)),
+  },
+  {
+    id: '99a89432-b64d-4c54-b6af-71591fdb0a06',
+    name: 'Eggy Egg',
+    category: 'Kitchen',
+    description: "Don't Break the egg or you will lose task master points",
+    price: 15.99,
+    stock: 25,
+    image: readFileSync(new URL('./images/egg-face.svg', import.meta.url)),
+  }
+];
+
+
 const database = createDatabase();
 
 try {
@@ -65,6 +87,15 @@ try {
     });
   }
   console.log(`Seeded ${testing_product_upload.length} testing products.`);
+
+  for (const product of out_of_stock_testing) {
+    await database.product.upsert({
+      where: { id: product.id },
+      create: product,
+      update: product,
+    });
+  }
+  console.log(`Seeded ${out_of_stock_testing.length} out of stock testing products.`);
 } finally {
   await database.$disconnect();
 }
