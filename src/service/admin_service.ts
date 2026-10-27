@@ -1,79 +1,19 @@
 import { hash, verify } from 'argon2';
-import { z } from 'zod';
-import type { PrismaClient } from './generated/prisma/client';
-import { passwordMessage, passwordSchema } from './registration';
-
-const requiredPasswordMessage = 'All password fields are required.';
-const nameRequiredMessage = 'Name is required.';
-const nameLengthMessage = 'Name must be 100 characters or fewer.';
-const emailRequiredMessage = 'Email address is required.';
-const emailInvalidMessage = 'Enter a valid email address.';
-
-export const profileUpdateSchema = z.object(
-  {
-    name: z
-      .string({ error: nameRequiredMessage })
-      .trim()
-      .min(1, nameRequiredMessage)
-      .max(100, nameLengthMessage),
-    email: z
-      .string({ error: emailRequiredMessage })
-      .trim()
-      .min(1, emailRequiredMessage)
-      .max(254, emailInvalidMessage)
-      .email(emailInvalidMessage)
-      .toLowerCase(),
-  },
-  { error: 'Profile details are required.' },
-);
-
-export const changePasswordSchema = z
-  .object(
-    {
-      currentPassword: z
-        .string({ error: requiredPasswordMessage })
-        .min(1, requiredPasswordMessage)
-        .max(128, requiredPasswordMessage),
-      newPassword: z
-        .string({ error: requiredPasswordMessage })
-        .min(1, requiredPasswordMessage)
-        .max(128, requiredPasswordMessage),
-      confirmPassword: z
-        .string({ error: requiredPasswordMessage })
-        .min(1, requiredPasswordMessage)
-        .max(128, requiredPasswordMessage),
-    },
-    { error: requiredPasswordMessage },
-  )
-  .refine((change) => change.newPassword === change.confirmPassword, {
-    message: 'The new password and confirmation do not match.',
-    path: ['confirmPassword'],
-  });
-
-export type PasswordChange = z.infer<typeof changePasswordSchema>;
-export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
-
-export class AdminValidationError extends Error {}
-export class IncorrectPasswordError extends Error {
-  constructor() {
-    super('Current password is incorrect.');
-  }
-}
-export class SamePasswordError extends Error {
-  constructor() {
-    super('New password must be different from your current password.');
-  }
-}
-export class EmailAlreadyInUseError extends Error {
-  constructor() {
-    super('Email is already in use.');
-  }
-}
-export class AdminNotFoundError extends Error {
-  constructor() {
-    super('Administrator not found.');
-  }
-}
+import {
+  AdminNotFoundError,
+  AdminValidationError,
+  EmailAlreadyInUseError,
+  IncorrectPasswordError,
+  SamePasswordError,
+} from '../errors/admin_errors';
+import type { PrismaClient } from '../generated/prisma/client';
+import {
+  changePasswordSchema,
+  type PasswordChange,
+  type ProfileUpdate,
+  profileUpdateSchema,
+} from '../models/admin_model';
+import { passwordMessage, passwordSchema } from '../models/password_model';
 
 export function validateProfileUpdate(body: unknown): ProfileUpdate {
   const result = profileUpdateSchema.safeParse(body);

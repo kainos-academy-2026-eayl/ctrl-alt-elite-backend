@@ -1,10 +1,7 @@
 import { verify } from 'argon2';
-import type { PrismaClient } from './generated/prisma/client';
-
-export const supportedRoles = ['CUSTOMER', 'ADMIN'] as const;
-export type UserRole = (typeof supportedRoles)[number];
-
-export class RoleNotDeterminedError extends Error {}
+import { RoleNotDeterminedError } from '../errors/login_errors';
+import type { PrismaClient } from '../generated/prisma/client';
+import { supportedRoles, type UserRole } from '../models/login_model';
 
 function isSupportedRole(role: unknown): role is UserRole {
   return supportedRoles.some((supported) => supported === role);

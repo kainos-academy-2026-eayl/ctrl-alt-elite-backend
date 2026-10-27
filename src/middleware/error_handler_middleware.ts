@@ -5,15 +5,15 @@ import {
   EmailAlreadyInUseError,
   IncorrectPasswordError,
   SamePasswordError,
-} from './admin';
+} from '../errors/admin_errors';
 import {
   CustomerEmailInUseError,
   CustomerNotFoundError,
   CustomerValidationError,
-} from './customers';
-import { Prisma } from './generated/prisma/client';
-import { RoleNotDeterminedError } from './login';
-import { RegistrationValidationError } from './registration';
+} from '../errors/customer_errors';
+import { RoleNotDeterminedError } from '../errors/login_errors';
+import { RegistrationValidationError } from '../errors/registration_errors';
+import { Prisma } from '../generated/prisma/client';
 
 const databaseUnavailableCodes = ['P1001', 'P1002', 'P1008', 'P1017'];
 

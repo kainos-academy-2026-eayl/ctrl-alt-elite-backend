@@ -5,15 +5,17 @@ import express, {
   type Response,
   Router,
 } from 'express';
+import type { PrismaClient } from './generated/prisma/client';
+import { createAuthorization } from './middleware/authorization_middleware';
+import { ErrorHandler } from './middleware/error_handler_middleware';
+import { createCatalogRouter } from './routes/catalog_routes';
 import {
   changeAdminPassword,
   getAdminProfile,
   updateAdminProfile,
   validatePasswordChange,
   validateProfileUpdate,
-} from './admin';
-import { createAuthorization } from './authorization';
-import { createCatalogRouter } from './catalog_app';
+} from './service/admin_service';
 import {
   getCustomer,
   listCustomers,
@@ -22,11 +24,12 @@ import {
   validateCustomerPasswordReset,
   validateCustomerQuery,
   validateCustomerUpdate,
-} from './customers';
-import { ErrorHandler } from './errorHandler';
-import type { PrismaClient } from './generated/prisma/client';
-import { authenticateUser } from './login';
-import { registerUser, validateRegistration } from './registration';
+} from './service/customer_service';
+import { authenticateUser } from './service/login_service';
+import {
+  registerUser,
+  validateRegistration,
+} from './service/registration_service';
 
 export function createApp(
   database: PrismaClient,

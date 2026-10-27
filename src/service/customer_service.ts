@@ -1,63 +1,24 @@
 import { hash } from 'argon2';
-import { z } from 'zod';
-import { Prisma, type PrismaClient } from './generated/prisma/client';
-import { passwordMessage, passwordSchema } from './registration';
+import {
+  CustomerEmailInUseError,
+  CustomerNotFoundError,
+  CustomerValidationError,
+} from '../errors/customer_errors';
+import { Prisma, type PrismaClient } from '../generated/prisma/client';
+import {
+  type Customer,
+  type CustomerPasswordReset,
+  type CustomerQuery,
+  type CustomerRecord,
+  type CustomerUpdate,
+  customerPasswordResetSchema,
+  customerQuerySchema,
+  customerUpdateSchema,
+} from '../models/customer_model';
+import { passwordMessage, passwordSchema } from '../models/password_model';
+import { customerResources } from '../resources/customer_resources';
 
-export const defaultPageSize = 10;
-export const maxPageSize = 100;
-
-const sortOptions = ['nameAsc', 'nameDesc', 'newest', 'oldest'] as const;
-const searchMessage = 'search must be a string of at most 200 characters.';
-const emailMessage = 'email must be a string of at most 254 characters.';
-const pageMessage = 'page must be a positive whole number.';
-const pageSizeMessage = `pageSize must be a whole number between 1 and ${maxPageSize}.`;
-const sortMessage = `sort must be one of: ${sortOptions.join(', ')}.`;
-const firstNameMessage = 'First name is required.';
-const lastNameMessage = 'Last name must be 100 characters or fewer.';
-const updateEmailMessage = 'Enter a valid email address.';
-const customerPasswordMessage = 'New password and confirmation are required.';
-
-const optionalText = (message: string, max: number) =>
-  z
-    .string({ error: message })
-    .trim()
-    .max(max, message)
-    .transform((value) => (value === '' ? undefined : value))
-    .optional();
-
-const wholeNumber = (message: string) =>
-  z
-    .string({ error: message })
-    .regex(/^\d+$/, message)
-    .transform(Number)
-    .pipe(z.number().int().safe({ error: message }));
-
-export const customerQuerySchema = z.object({
-  search: optionalText(searchMessage, 200),
-  email: optionalText(emailMessage, 254),
-  sort: z.enum(sortOptions, { error: sortMessage }).default('newest'),
-  page: wholeNumber(pageMessage)
-    .pipe(z.number().min(1, pageMessage))
-    .default(1),
-  pageSize: wholeNumber(pageSizeMessage)
-    .pipe(z.number().min(1, pageSizeMessage).max(maxPageSize, pageSizeMessage))
-    .default(defaultPageSize),
-});
-
-export type CustomerQuery = z.infer<typeof customerQuerySchema>;
-export type CustomerSort = CustomerQuery['sort'];
-
-export class CustomerValidationError extends Error {}
-export class CustomerNotFoundError extends Error {
-  constructor() {
-    super('Customer not found.');
-  }
-}
-export class CustomerEmailInUseError extends Error {
-  constructor() {
-    super('Email is already in use.');
-  }
-}
+const { messages } = customerResources;
 
 function throwIfCustomerWasDeleted(error: unknown): never {
   if (
@@ -69,54 +30,11 @@ function throwIfCustomerWasDeleted(error: unknown): never {
   throw error;
 }
 
-export const customerUpdateSchema = z.object(
-  {
-    firstName: z
-      .string({ error: firstNameMessage })
-      .trim()
-      .min(1, firstNameMessage)
-      .max(100, 'First name must be 100 characters or fewer.'),
-    lastName: z
-      .string({ error: lastNameMessage })
-      .trim()
-      .max(100, lastNameMessage)
-      .optional(),
-    email: z
-      .string({ error: updateEmailMessage })
-      .trim()
-      .min(1, updateEmailMessage)
-      .max(254, updateEmailMessage)
-      .email(updateEmailMessage)
-      .toLowerCase(),
-  },
-  { error: 'Customer details are required.' },
-);
-
-export const customerPasswordResetSchema = z
-  .object(
-    {
-      newPassword: z
-        .string({ error: customerPasswordMessage })
-        .min(1, customerPasswordMessage),
-      confirmPassword: z
-        .string({ error: customerPasswordMessage })
-        .min(1, customerPasswordMessage),
-    },
-    { error: customerPasswordMessage },
-  )
-  .refine((change) => change.newPassword === change.confirmPassword, {
-    message: 'The new password and confirmation do not match.',
-    path: ['confirmPassword'],
-  });
-
-export type CustomerUpdate = z.infer<typeof customerUpdateSchema>;
-export type CustomerPasswordReset = z.infer<typeof customerPasswordResetSchema>;
-
 export function validateCustomerQuery(query: unknown): CustomerQuery {
   const result = customerQuerySchema.safeParse(query);
   if (!result.success) {
     throw new CustomerValidationError(
-      result.error.issues[0]?.message ?? 'Invalid customer query.',
+      result.error.issues[0]?.message ?? messages.invalidQuery,
     );
   }
   return result.data;
@@ -126,7 +44,7 @@ export function validateCustomerUpdate(body: unknown): CustomerUpdate {
   const result = customerUpdateSchema.safeParse(body);
   if (!result.success) {
     throw new CustomerValidationError(
-      result.error.issues[0]?.message ?? 'Invalid customer details.',
+      result.error.issues[0]?.message ?? messages.invalidDetails,
     );
   }
   return result.data;
@@ -138,7 +56,7 @@ export function validateCustomerPasswordReset(
   const result = customerPasswordResetSchema.safeParse(body);
   if (!result.success) {
     throw new CustomerValidationError(
-      result.error.issues[0]?.message ?? 'Invalid password details.',
+      result.error.issues[0]?.message ?? messages.invalidPassword,
     );
   }
   return result.data;
@@ -151,22 +69,6 @@ const customerSelect = {
   email: true,
   createdAt: true,
 } as const;
-
-type CustomerRecord = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  createdAt: Date;
-};
-
-export type Customer = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  registrationDate: string;
-};
 
 export function toCustomer(record: CustomerRecord): Customer {
   return {
