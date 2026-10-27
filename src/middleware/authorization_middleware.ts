@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { errors, jwtVerify, SignJWT } from 'jose';
-import type { PrismaClient } from './generated/prisma/client';
+import type { PrismaClient } from '../generated/prisma/client';
 
 const issuer = 'ctrl-alt-elite-backend';
 const audience = 'ctrl-alt-elite-api';
@@ -72,6 +72,7 @@ export function createAuthorization(database: PrismaClient, secret: string) {
       });
       return;
     }
+    res.locals.userId = userId;
     next();
   };
 

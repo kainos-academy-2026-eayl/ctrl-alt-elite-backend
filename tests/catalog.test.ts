@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import { mock, test } from 'node:test';
-import {
-  type CatalogProduct,
-  createCatalogRepository,
-} from '../src/repo/catalog_repository';
+import type { CatalogProduct } from '../src/models/catalog_model';
+import { createCatalogRepository } from '../src/repo/catalog_repository';
 import { createCatalogService } from '../src/service/catalog_service';
 
 const product: CatalogProduct = {

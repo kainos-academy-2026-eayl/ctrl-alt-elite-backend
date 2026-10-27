@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { before, test } from 'node:test';
 import { hash } from 'argon2';
+import { RoleNotDeterminedError } from '../src/errors/login_errors';
 import type { PrismaClient } from '../src/generated/prisma/client';
-import { authenticateUser, RoleNotDeterminedError } from '../src/login';
+import { authenticateUser } from '../src/service/login_service';
 
 const password = 'Password123';
 let passwordHash: string;

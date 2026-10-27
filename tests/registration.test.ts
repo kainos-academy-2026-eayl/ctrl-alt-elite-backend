@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import {
-  RegistrationValidationError,
-  validateRegistration,
-} from '../src/registration';
+import { RegistrationValidationError } from '../src/errors/registration_errors';
+import { validateRegistration } from '../src/service/registration_service';
 
 const valid = {
   firstName: ' Caolan ',

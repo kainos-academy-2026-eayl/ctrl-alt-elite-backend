@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { createApp } from './app';
-import { createDatabase } from './database';
+import { createDatabase } from './config/database_config';
 
 if (!process.env.PORT) {
   throw new Error('PORT environment variable is not set');

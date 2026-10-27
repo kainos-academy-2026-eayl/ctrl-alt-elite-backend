@@ -5,7 +5,7 @@ Ctrl Alt Elite Backend
 
 Run the backend on port `3001` and the frontend on port `8080`.
 Copy [.env.example](.env.example) to `.env` if needed, replace the local database
-password and set the matching `DATABASE_URL`. The backend settings are:
+password and set the matching `DATABASE_URL`. The backend settings are as follows:
 
 ```ini
 PORT=3001
@@ -60,7 +60,7 @@ show its temporary-unavailable message.
 The catalogue uses separate layers so database access and product preparation
 can be tested without starting an HTTP server:
 
-- [Router](src/catalog_app.ts): creates the layers and maps URLs to handlers.
+- [Router](src/routes/catalog_routes.ts): creates the layers and maps URLs to handlers.
 - [Controller](src/controllers/catalog_controller.ts): reads request parameters and sends
   HTTP status codes and JSON responses.
 - [Service](src/service/catalog_service.ts): prepares products for the API, including
@@ -73,6 +73,9 @@ Tests can supply lightweight replacements for those dependencies. Errors
 propagate to the existing shared error handler; missing products still return
 404, and database or unsupported-image failures still return 500.
 ## Customer API (admin)
+
+Customer validation limits, pagination defaults, sort options and messages are
+defined in [customer resources](src/resources/customer_resources.ts).
 
 Customer APIs require a valid login token and the current database role `ADMIN`.
 Both `/api/admin/customers` and the existing `/api/customers` URLs are protected,
@@ -200,10 +203,27 @@ before building. This step supplies a placeholder `DATABASE_URL` because
 Client generation does not connect to a database or apply migrations, so this
 step needs neither a running PostgreSQL server nor database secrets.
 
-`npm test` runs registration, error-handler, catalogue repository/service unit
-tests and product API tests.
-Product tests start a temporary HTTP server with a mocked database; none of
+`npm test` runs registration, error-handler, catalogue repository/service and
+customer unit tests, plus the existing product API tests.
+Product API tests start a temporary HTTP server with a mocked database; none of
 these tests connect to PostgreSQL.
+
+Run `npm run test:customers:unit` for isolated customer validation and service
+tests in [customers.test.ts](tests/customers.test.ts). These call public functions
+directly with a mocked Prisma client, without Express, HTTP requests or JWTs.
+Password hashing checks use the real Argon2 library.
+
+Admin account unit tests are grouped by behavior under [tests/admin](tests/admin):
+[profile tests](tests/admin/profile.test.ts) and
+[password tests](tests/admin/password.test.ts). Run `npm run test:admin:unit`
+to test public admin validation and service functions with mocked database calls,
+without starting a server. These also run through `npm test`.
+
+Authorization middleware unit tests in
+[authorization.test.ts](tests/authorization.test.ts) call the middleware directly
+with mocked requests, responses and database calls. They run through `npm test`
+without starting a server. They cover token and role checks, not route wiring
+or end-to-end login flows.
 
 ### Block merges when CI fails
 

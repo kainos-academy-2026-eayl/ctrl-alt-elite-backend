@@ -5,13 +5,31 @@ import express, {
   type Response,
   Router,
 } from 'express';
-import { createAuthorization } from './authorization';
-import { createCatalogRouter } from './catalog_app';
-import { getCustomer, listCustomers, validateCustomerQuery } from './customers';
-import { ErrorHandler } from './errorHandler';
 import type { PrismaClient } from './generated/prisma/client';
-import { authenticateUser } from './login';
-import { registerUser, validateRegistration } from './registration';
+import { createAuthorization } from './middleware/authorization_middleware';
+import { ErrorHandler } from './middleware/error_handler_middleware';
+import { createCatalogRouter } from './routes/catalog_routes';
+import {
+  changeAdminPassword,
+  getAdminProfile,
+  updateAdminProfile,
+  validatePasswordChange,
+  validateProfileUpdate,
+} from './service/admin_service';
+import {
+  getCustomer,
+  listCustomers,
+  resetCustomerPassword,
+  updateCustomer,
+  validateCustomerPasswordReset,
+  validateCustomerQuery,
+  validateCustomerUpdate,
+} from './service/customer_service';
+import { authenticateUser } from './service/login_service';
+import {
+  registerUser,
+  validateRegistration,
+} from './service/registration_service';
 
 export function createApp(
   database: PrismaClient,
@@ -67,7 +85,60 @@ export function createApp(
     res.json({ customer: await getCustomer(database, String(req.params.id)) });
   });
 
+  customers.put('/:id', async (req: Request, res: Response) => {
+    if (!req.is('application/json')) {
+      res
+        .status(415)
+        .json({ message: 'Content-Type must be application/json.' });
+      return;
+    }
+    const customer = validateCustomerUpdate(req.body);
+    res.json({
+      customer: await updateCustomer(database, String(req.params.id), customer),
+    });
+  });
+
+  customers.put('/:id/password', async (req: Request, res: Response) => {
+    if (!req.is('application/json')) {
+      res
+        .status(415)
+        .json({ message: 'Content-Type must be application/json.' });
+      return;
+    }
+    const change = validateCustomerPasswordReset(req.body);
+    await resetCustomerPassword(database, String(req.params.id), change);
+    res.json({ message: 'Password reset successfully.' });
+  });
+
   app.use('/api/admin', requireAdmin);
+
+  app.get('/api/admin/profile', async (_req: Request, res: Response) => {
+    res.json(await getAdminProfile(database, res.locals.userId));
+  });
+
+  app.put('/api/admin/profile', async (req: Request, res: Response) => {
+    if (!req.is('application/json')) {
+      res
+        .status(415)
+        .json({ message: 'Content-Type must be application/json.' });
+      return;
+    }
+    const profile = validateProfileUpdate(req.body);
+    res.json(await updateAdminProfile(database, res.locals.userId, profile));
+  });
+
+  app.put('/api/admin/change-password', async (req: Request, res: Response) => {
+    if (!req.is('application/json')) {
+      res
+        .status(415)
+        .json({ message: 'Content-Type must be application/json.' });
+      return;
+    }
+    const change = validatePasswordChange(req.body);
+    await changeAdminPassword(database, res.locals.userId, change);
+    res.json({ message: 'Password updated successfully.' });
+  });
+
   app.use('/api/admin/customers', customers);
   app.use('/api/customers', requireAdmin, customers);
 

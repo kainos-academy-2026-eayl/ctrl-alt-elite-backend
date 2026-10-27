@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
-import { createDatabase } from '../src/database';
+import { createDatabase } from '../src/config/database_config';
 
 const products = [
   {

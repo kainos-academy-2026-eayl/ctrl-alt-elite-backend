@@ -4,11 +4,11 @@ import type { Request, Response } from 'express';
 import {
   CustomerNotFoundError,
   CustomerValidationError,
-} from '../src/customers';
-import { ErrorHandler } from '../src/errorHandler';
+} from '../src/errors/customer_errors';
+import { RoleNotDeterminedError } from '../src/errors/login_errors';
+import { RegistrationValidationError } from '../src/errors/registration_errors';
 import { Prisma } from '../src/generated/prisma/client';
-import { RoleNotDeterminedError } from '../src/login';
-import { RegistrationValidationError } from '../src/registration';
+import { ErrorHandler } from '../src/middleware/error_handler_middleware';
 
 function handleError(error: unknown) {
   const status = mock.fn((_code: number): Response => response);
