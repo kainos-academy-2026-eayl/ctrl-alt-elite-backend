@@ -4,3 +4,4 @@ dist/
 src/generated/
 code_reviews/
 .vscode/tasks.json
+.github/copilot-instructions.md
