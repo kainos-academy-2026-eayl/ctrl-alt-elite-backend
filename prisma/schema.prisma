@@ -55,5 +55,22 @@ model Product {
     createdAt    DateTime @default(now())
     
     orderEntries order_products[]
+    basketItems  BasketItem[]
 }
 
+model Basket {
+  id        String       @id @default(uuid())
+  createdAt DateTime     @default(now())
+  items     BasketItem[]
+}
+
+model BasketItem {
+  basketId  String
+  productId String
+  quantity  Int
+  addedAt   DateTime @default(now())
+  basket    Basket   @relation(fields: [basketId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([basketId, productId])
+}

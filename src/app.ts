@@ -5,9 +5,12 @@ import express, {
   type Response,
   Router,
 } from 'express';
+import { BasketController } from './controllers/basketController';
 import type { PrismaClient } from './generated/prisma/client';
 import { createAuthorization } from './middleware/authorization_middleware';
 import { ErrorHandler } from './middleware/error_handler_middleware';
+import { BasketRepository } from './repo/basket_repository';
+import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import {
   changeAdminPassword,
@@ -16,6 +19,7 @@ import {
   validatePasswordChange,
   validateProfileUpdate,
 } from './service/admin_service';
+import { BasketService } from './service/basketService';
 import {
   getCustomer,
   listCustomers,
@@ -31,10 +35,21 @@ import {
   validateRegistration,
 } from './service/registration_service';
 
+export interface AppServices {
+  basketService: BasketService;
+}
+
+export function createServices(database: PrismaClient): AppServices {
+  return {
+    basketService: new BasketService(new BasketRepository(database)),
+  };
+}
+
 export function createApp(
   database: PrismaClient,
   frontendOrigin: string,
   jwtSecret: string,
+  services: AppServices = createServices(database),
 ): Express {
   const { issueToken, requireAdmin } = createAuthorization(database, jwtSecret);
   const app = express();
@@ -141,6 +156,11 @@ export function createApp(
 
   app.use('/api/admin/customers', customers);
   app.use('/api/customers', requireAdmin, customers);
+
+  app.use(
+    '/api/baskets',
+    createBasketRouter(new BasketController(services.basketService)),
+  );
 
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);
