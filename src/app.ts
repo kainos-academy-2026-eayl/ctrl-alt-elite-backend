@@ -18,6 +18,7 @@ import {
   validatePasswordChange,
   validateProfileUpdate,
 } from './service/admin_service';
+import { BasketService } from './service/basketService';
 import {
   getCustomer,
   listCustomers,
@@ -32,7 +33,6 @@ import {
   registerUser,
   validateRegistration,
 } from './service/registration_service';
-import { BasketService } from './service/basketService';
 
 export interface AppServices {
   basketService: BasketService;
