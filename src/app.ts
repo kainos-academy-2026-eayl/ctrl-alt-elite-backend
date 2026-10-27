@@ -9,6 +9,7 @@ import { BasketController } from './controllers/basketController';
 import type { PrismaClient } from './generated/prisma/client';
 import { createAuthorization } from './middleware/authorization_middleware';
 import { ErrorHandler } from './middleware/error_handler_middleware';
+import { BasketRepository } from './repo/basket_repository';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import {
@@ -39,7 +40,9 @@ export interface AppServices {
 }
 
 export function createServices(database: PrismaClient): AppServices {
-  return { basketService: new BasketService(database) };
+  return {
+    basketService: new BasketService(new BasketRepository(database)),
+  };
 }
 
 export function createApp(

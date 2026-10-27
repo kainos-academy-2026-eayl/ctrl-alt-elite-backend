@@ -3,32 +3,18 @@ import {
   NotFoundError,
   ValidationError,
 } from '../errors/appErrors';
-import { Prisma, type PrismaClient } from '../generated/prisma/client';
 import {
-  Basket,
-  BasketLine,
+  type Basket,
   MAX_QUANTITY,
   maxQuantityMessage,
   type QuantityUpdate,
 } from '../models/basket';
+import type { BasketRepository } from '../repo/basket_repository';
 
 export const BASKET_NOT_FOUND_MESSAGE =
   'Basket not found. Please start a new basket.';
 export const PRODUCT_NOT_FOUND_MESSAGE = 'That product is not available.';
 export const ITEM_NOT_FOUND_MESSAGE = 'That item is not in your basket.';
-
-const basketSelect = {
-  id: true,
-  items: {
-    select: {
-      quantity: true,
-      product: { select: { id: true, name: true, price: true } },
-    },
-    orderBy: [{ addedAt: 'asc' }, { productId: 'asc' }],
-  },
-} satisfies Prisma.BasketSelect;
-
-type BasketRecord = Prisma.BasketGetPayload<{ select: typeof basketSelect }>;
 
 export interface AddItemResult {
   basket: Basket;
@@ -36,39 +22,29 @@ export interface AddItemResult {
 }
 
 export class BasketService {
-  private readonly database: PrismaClient;
+  private readonly basketRepository: BasketRepository;
 
-  constructor(database: PrismaClient) {
-    this.database = database;
+  constructor(basketRepository: BasketRepository) {
+    this.basketRepository = basketRepository;
   }
 
-  async createBasket(): Promise<Basket> {
-    const basket = await this.database.basket.create({
-      data: {},
-      select: basketSelect,
-    });
-    return toBasket(basket);
+  createBasket(): Promise<Basket> {
+    return this.basketRepository.create();
   }
 
   async getBasket(basketId: string): Promise<Basket> {
-    const basket = await this.database.basket.findUnique({
-      where: { id: basketId },
-      select: basketSelect,
-    });
+    const basket = await this.basketRepository.findById(basketId);
     if (basket === null) {
       throw new NotFoundError(BASKET_NOT_FOUND_MESSAGE);
     }
-    return toBasket(basket);
+    return basket;
   }
 
   /** Adds one of a product, or one more if it is already in the basket. */
   async addItem(basketId: string, productId: string): Promise<AddItemResult> {
     await this.ensureBasketExists(basketId);
-    const product = await this.database.product.findUnique({
-      where: { id: productId },
-      select: { name: true },
-    });
-    if (product === null) {
+    const productName = await this.basketRepository.findProductName(productId);
+    if (productName === null) {
       throw new ValidationError([
         { field: 'productId', message: PRODUCT_NOT_FOUND_MESSAGE },
       ]);
@@ -77,7 +53,7 @@ export class BasketService {
     const isNewLine = await this.incrementOrCreateLine(
       basketId,
       productId,
-      product.name,
+      productName,
     );
     return { basket: await this.getBasket(basketId), isNewLine };
   }
@@ -89,13 +65,16 @@ export class BasketService {
   ): Promise<Basket> {
     const updatedCount =
       'change' in update
-        ? await this.changeLineQuantity(basketId, productId, update.change)
-        : (
-            await this.database.basketItem.updateMany({
-              where: { basketId, productId },
-              data: { quantity: update.quantity },
-            })
-          ).count;
+        ? await this.basketRepository.changeLineQuantity(
+            basketId,
+            productId,
+            update.change,
+          )
+        : await this.basketRepository.setLineQuantity(
+            basketId,
+            productId,
+            update.quantity,
+          );
     if (updatedCount === 0) {
       await this.ensureBasketExists(basketId);
       throw new NotFoundError(ITEM_NOT_FOUND_MESSAGE);
@@ -104,107 +83,49 @@ export class BasketService {
   }
 
   async removeItem(basketId: string, productId: string): Promise<void> {
-    const deleted = await this.database.basketItem.deleteMany({
-      where: { basketId, productId },
-    });
-    if (deleted.count === 0) {
+    const deletedCount = await this.basketRepository.deleteLine(
+      basketId,
+      productId,
+    );
+    if (deletedCount === 0) {
       await this.ensureBasketExists(basketId);
       throw new NotFoundError(ITEM_NOT_FOUND_MESSAGE);
     }
   }
 
   private async ensureBasketExists(basketId: string): Promise<void> {
-    const basket = await this.database.basket.findUnique({
-      where: { id: basketId },
-      select: { id: true },
-    });
-    if (basket === null) {
+    if (!(await this.basketRepository.exists(basketId))) {
       throw new NotFoundError(BASKET_NOT_FOUND_MESSAGE);
     }
   }
 
-  /**
-   * Applies +/- changes in one statement so rapid clicks are never lost, and
-   * clamps between 1 and MAX_QUANTITY like the frontend. Prisma's tagged
-   * template sends every value as a query parameter, so this is injection-safe.
-   */
-  private changeLineQuantity(
-    basketId: string,
-    productId: string,
-    change: number,
-  ): Promise<number> {
-    return this.database.$executeRaw`
-      UPDATE "BasketItem"
-      SET "quantity" = LEAST(GREATEST("quantity" + ${change}::int, 1), ${MAX_QUANTITY}::int)
-      WHERE "basketId" = ${basketId} AND "productId" = ${productId}`;
-  }
-
-  /**
-   * Increments in a single conditional update so two quick clicks can never
-   * push the quantity past MAX_QUANTITY. Returns true when a new line was made.
-   */
+  /** Returns true when a new line was made. */
   private async incrementOrCreateLine(
     basketId: string,
     productId: string,
     productName: string,
   ): Promise<boolean> {
-    const incremented = await this.database.basketItem.updateMany({
-      where: { basketId, productId, quantity: { lt: MAX_QUANTITY } },
-      data: { quantity: { increment: 1 } },
-    });
-    if (incremented.count > 0) {
+    if (
+      await this.basketRepository.incrementLineBelowMax(basketId, productId)
+    ) {
       return false;
     }
 
-    const existing = await this.database.basketItem.findUnique({
-      where: { basketId_productId: { basketId, productId } },
-      select: { quantity: true },
-    });
-    if (existing !== null) {
-      if (existing.quantity < MAX_QUANTITY) {
+    const existingQuantity = await this.basketRepository.findLineQuantity(
+      basketId,
+      productId,
+    );
+    if (existingQuantity !== null) {
+      if (existingQuantity < MAX_QUANTITY) {
         return this.incrementOrCreateLine(basketId, productId, productName);
       }
       throw new ConflictError(maxQuantityMessage(productName));
     }
 
-    try {
-      await this.database.basketItem.create({
-        data: { basketId, productId, quantity: 1 },
-      });
+    if (await this.basketRepository.createLine(basketId, productId)) {
       return true;
-    } catch (error) {
-      // A simultaneous request created the line first, so increment it instead.
-      if (isUniqueConstraintError(error)) {
-        return this.incrementOrCreateLine(basketId, productId, productName);
-      }
-      throw error;
     }
+    // A simultaneous request created the line first, so increment it instead.
+    return this.incrementOrCreateLine(basketId, productId, productName);
   }
-}
-
-function isUniqueConstraintError(error: unknown): boolean {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === 'P2002'
-  );
-}
-
-// Product prices are stored in pounds; rounding avoids float drift like 0.29 * 100.
-function toPence(pounds: number): number {
-  return Math.round(pounds * 100);
-}
-
-function toBasket(record: BasketRecord): Basket {
-  return new Basket(
-    record.id,
-    record.items.map(
-      (item) =>
-        new BasketLine(
-          item.product.id,
-          item.product.name,
-          toPence(item.product.price),
-          item.quantity,
-        ),
-    ),
-  );
 }

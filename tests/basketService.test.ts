@@ -6,6 +6,7 @@ import {
   ValidationError,
 } from '../src/errors/appErrors';
 import { Prisma, type PrismaClient } from '../src/generated/prisma/client';
+import { BasketRepository } from '../src/repo/basket_repository';
 import {
   BASKET_NOT_FOUND_MESSAGE,
   BasketService,
@@ -51,7 +52,9 @@ let service: BasketService;
 
 beforeEach(() => {
   database = createMockDatabase();
-  service = new BasketService(database as unknown as PrismaClient);
+  service = new BasketService(
+    new BasketRepository(database as unknown as PrismaClient),
+  );
 });
 
 test('should create an empty basket', async () => {

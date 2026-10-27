@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
+import { validateRequest } from '../middleware/validateRequest';
 import {
   AddBasketItemSchema,
   BasketItemParamsSchema,
   BasketParamsSchema,
   toBasketResponse,
   UpdateBasketItemSchema,
-} from '../dtos/basketDto';
-import { validateRequest } from '../dtos/validateRequest';
+} from '../models/basket';
 import type { BasketService } from '../service/basketService';
 
 export class BasketController {
