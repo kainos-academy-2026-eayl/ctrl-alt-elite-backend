@@ -32,7 +32,7 @@ import {
   registerUser,
   validateRegistration,
 } from './service/registration_service';
-import { BasketService } from './services/basketService';
+import { BasketService } from './service/basketService';
 
 export interface AppServices {
   basketService: BasketService;

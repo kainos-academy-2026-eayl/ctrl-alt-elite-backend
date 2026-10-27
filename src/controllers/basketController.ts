@@ -7,7 +7,7 @@ import {
   UpdateBasketItemSchema,
 } from '../dtos/basketDto';
 import { validateRequest } from '../dtos/validateRequest';
-import type { BasketService } from '../services/basketService';
+import type { BasketService } from '../service/basketService';
 
 export class BasketController {
   private readonly basketService: BasketService;

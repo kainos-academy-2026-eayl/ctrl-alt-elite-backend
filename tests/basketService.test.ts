@@ -11,7 +11,7 @@ import {
   BasketService,
   ITEM_NOT_FOUND_MESSAGE,
   PRODUCT_NOT_FOUND_MESSAGE,
-} from '../src/services/basketService';
+} from '../src/service/basketService';
 
 const BASKET_ID = '6f1c2f0e-6a8e-4c43-9a51-3f3c9b8f4b11';
 
