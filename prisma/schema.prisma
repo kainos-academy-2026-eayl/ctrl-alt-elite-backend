@@ -12,6 +12,22 @@ enum Role {
   ADMIN
 }
 
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  ACCOUNT_ISSUE
+  ORDER_ISSUE
+  DELIVERY_ISSUE
+  RETURNS_REFUNDS
+  PRODUCT_ENQUIRY
+  OTHER
+}
+
 model User {
   id           String   @id @default(uuid())
   firstName    String   @db.VarChar(100)
@@ -21,6 +37,35 @@ model User {
   role         Role     @default(CUSTOMER)
   createdAt    DateTime @default(now())
   orders       order[]
+  supportTickets SupportTicket[]
+  ticketMessages TicketMessage[]
+}
+
+model SupportTicket {
+  id          String         @id @default(dbgenerated("('T-'::text || (nextval('ticket_number_seq'::regclass))::text)"))
+  customerId  String
+  customer    User           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  subject     String         @db.VarChar(200)
+  category    TicketCategory
+  description String         @db.VarChar(10000)
+  status      TicketStatus   @default(OPEN)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @default(now()) @updatedAt
+  messages    TicketMessage[]
+
+  @@index([customerId, createdAt, id])
+}
+
+model TicketMessage {
+  id        String        @id @default(uuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  body      String        @db.VarChar(10000)
+  createdAt DateTime      @default(now())
+
+  @@index([ticketId, createdAt, id])
 }
 
 model order {

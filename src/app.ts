@@ -13,6 +13,10 @@ import { BasketRepository } from './repo/basket_repository';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import {
+  createAdminSupportTicketRouter,
+  createSupportTicketRouter,
+} from './routes/support_ticket_routes';
+import {
   changeAdminPassword,
   getAdminProfile,
   updateAdminProfile,
@@ -51,7 +55,10 @@ export function createApp(
   jwtSecret: string,
   services: AppServices = createServices(database),
 ): Express {
-  const { issueToken, requireAdmin } = createAuthorization(database, jwtSecret);
+  const { issueToken, requireAdmin, requireTicketUser } = createAuthorization(
+    database,
+    jwtSecret,
+  );
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
   app.use(express.json({ limit: '16kb' }));
@@ -61,6 +68,12 @@ export function createApp(
   });
 
   app.use('/api', createCatalogRouter(database));
+
+  app.use(
+    '/api/support/tickets',
+    requireTicketUser,
+    createSupportTicketRouter(database),
+  );
 
   app.post('/api/auth/register', async (req: Request, res: Response) => {
     if (!req.is('application/json')) {
@@ -153,6 +166,11 @@ export function createApp(
     await changeAdminPassword(database, res.locals.userId, change);
     res.json({ message: 'Password updated successfully.' });
   });
+
+  app.use(
+    '/api/admin/support/tickets',
+    createAdminSupportTicketRouter(database),
+  );
 
   app.use('/api/admin/customers', customers);
   app.use('/api/customers', requireAdmin, customers);
