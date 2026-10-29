@@ -10,6 +10,7 @@ datasource db {
 enum Role {
   CUSTOMER
   ADMIN
+  CUSTOMER_SERVICE
 }
 
 enum TicketStatus {
