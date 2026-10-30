@@ -350,39 +350,33 @@ test('an image of exactly 1 MB is accepted', async () => {
   assert.equal(response.status, 201);
 });
 
-test('SVGs with active content are rejected and safe SVGs accepted', async () => {
-  const { app, admin } = await fixture();
+test('SVG uploads are rejected, including namespace-prefixed script elements', async () => {
+  const { app, admin, seed, state } = await fixture();
   const post = (markup: string) =>
     admin(
       request(app)
         .post('/api/admin/products')
         .send({ ...validBody, image: svgUrl(markup) }),
     );
-  const unsafe = [
-    '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
-    '<svg xmlns="http://www.w3.org/2000/svg"><SCRIPT>alert(1)</SCRIPT></svg>',
-    '<svg xmlns="http://www.w3.org/2000/svg"><foreignObject></foreignObject></svg>',
-    '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"></svg>',
-    '<svg xmlns="http://www.w3.org/2000/svg"><rect onclick = "x()"/></svg>',
-    '<svg xmlns="http://www.w3.org/2000/svg"><a href="javascript:alert(1)"/></svg>',
-    '<svg xmlns="http://www.w3.org/2000/svg"><a href="&#106;avascript:alert(1)"/></svg>',
-  ];
-  for (const markup of unsafe) {
+  for (const markup of [
+    svgBytes.toString(),
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:s="http://www.w3.org/2000/svg"><s:script>alert(1)</s:script></svg>',
+  ]) {
     assert.equal((await post(markup)).status, 400, markup);
   }
-  assert.equal((await post(svgBytes.toString())).status, 201);
-  assert.equal(
-    (
-      await post(
-        '<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg"></svg>',
-      )
-    ).status,
-    201,
+  const product = seed();
+  const update = await admin(
+    request(app)
+      .put(`/api/admin/products/${product.id}`)
+      .send({
+        ...validBody,
+        image: svgUrl(
+          '<svg xmlns:s="http://www.w3.org/2000/svg"><s:script/></svg>',
+        ),
+      }),
   );
-  assert.equal(
-    (await post('<svg\nxmlns="http://www.w3.org/2000/svg"></svg>')).status,
-    201,
-  );
+  assert.equal(update.status, 400);
+  assert.equal(state.products.get(product.id)?.image, pngBytes);
 });
 
 test('a request body over 1.5 MB is rejected with 413', async () => {
@@ -450,7 +444,7 @@ test('customer service and customers get 403', async (context) => {
 test('admin can update a product and replace its image', async () => {
   const { app, admin, seed } = await fixture();
   const product = seed();
-  const newImage = svgUrl(svgBytes.toString());
+  const newImage = pngUrl;
   const response = await admin(
     request(app)
       .put(`/api/admin/products/${product.id}`)

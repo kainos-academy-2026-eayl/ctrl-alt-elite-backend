@@ -36,16 +36,6 @@ const dataUrlPattern =
 // Checked before decoding so an oversized payload is never allocated.
 const maxBase64Length = Math.ceil(maxImageBytes / 3) * 4;
 
-const unsafeSvgPatterns: readonly RegExp[] = [
-  /<script/i,
-  /<foreignObject/i,
-  /[\s"'/]on[a-z]+\s*=/i,
-  /j\s*a\s*v\s*a\s*s\s*c\s*r\s*i\s*p\s*t\s*:/i,
-  // Character references and DTD entities can hide the patterns above.
-  /&#/,
-  /<!ENTITY/i,
-];
-
 export type ImageParseResult =
   | { ok: true; bytes: Buffer }
   | { ok: false; message: string };
@@ -79,13 +69,7 @@ export function parseImageDataUrl(value: string): ImageParseResult {
     };
   }
   if (declared === 'image/svg+xml') {
-    const markup = bytes.toString('utf8');
-    if (unsafeSvgPatterns.some((pattern) => pattern.test(markup))) {
-      return {
-        ok: false,
-        message: 'SVG images must not contain scripts or event handlers.',
-      };
-    }
+    return { ok: false, message: 'SVG uploads are not supported.' };
   }
   return { ok: true, bytes };
 }
