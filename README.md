@@ -55,6 +55,14 @@ and an empty description during migration; populate these fields with your own
 catalogue content. Database failures return HTTP 500, allowing the frontend to
 show its temporary-unavailable message.
 
+`GET /api/products/popular?limit=6` feeds the homepage conveyor belt. It returns
+`{ "products": [{ "id", "name", "price", "imageUrl" }] }`, where `price` is a
+2 decimal place string such as `"24.99"`. Only in-stock products are included,
+ranked by total units ordered. If too few products have been ordered, the
+remaining slots are filled with the newest in-stock products. `limit` defaults
+to 6 and is capped at 20; a missing or invalid value uses the default. The
+layers live in the `popular_products_*` files alongside the catalogue layers.
+
 ## Catalogue architecture
 
 The catalogue uses separate layers so database access and product preparation

@@ -20,7 +20,7 @@ export interface ProductSearchResultDto {
 }
 
 /** Turns stored image bytes into a data: URL the browser can show directly. */
-function toImageDataUrl(imageBytes: Uint8Array): string {
+export function toImageDataUrl(imageBytes: Uint8Array): string {
   const image = Buffer.from(imageBytes);
   let mimeType: string;
   if (image.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'))) {
