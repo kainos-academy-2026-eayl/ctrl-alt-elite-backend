@@ -43,6 +43,8 @@ async function fixture() {
     products: new Map<string, StoredProduct>(),
     orderedIds: new Set<string>(),
     basketRows: [] as { productId: string }[],
+    raceNextBasketInsert: null as string | null,
+    transactionAttempts: 0,
     nextId: 1,
   };
   const productTable = {
@@ -93,20 +95,35 @@ async function fixture() {
     order_products: orderProducts,
     basketItem,
     $transaction: async (run: (tx: unknown) => Promise<unknown>) => {
+      state.transactionAttempts += 1;
       // Roll back the in-memory state if the callback fails, like a real transaction.
       const snapshot = {
         products: new Map(state.products),
         basketRows: [...state.basketRows],
       };
       try {
-        return await run({
+        const result = await run({
           product: productTable,
           order_products: orderProducts,
           basketItem,
         });
+        if (state.raceNextBasketInsert) {
+          throw new Prisma.PrismaClientKnownRequestError(
+            'Foreign key constraint failed',
+            {
+              code: 'P2003',
+              clientVersion: 'test',
+            },
+          );
+        }
+        return result;
       } catch (error) {
         state.products = snapshot.products;
         state.basketRows = snapshot.basketRows;
+        if (state.raceNextBasketInsert) {
+          state.basketRows.push({ productId: state.raceNextBasketInsert });
+          state.raceNextBasketInsert = null;
+        }
         throw error;
       }
     },
@@ -526,6 +543,21 @@ test('deleting an unordered product also clears its basket rows', async () => {
   assert.deepEqual(response.body, { message: 'Product deleted.' });
   assert.equal(state.products.has(product.id), false);
   assert.deepEqual(state.basketRows, [{ productId: other.id }]);
+});
+
+test('deleting retries when a basket item is inserted during cleanup', async () => {
+  const { app, admin, state, seed } = await fixture();
+  const product = seed();
+  state.raceNextBasketInsert = product.id;
+
+  const response = await admin(
+    request(app).delete(`/api/admin/products/${product.id}`),
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(state.transactionAttempts, 2);
+  assert.equal(state.products.has(product.id), false);
+  assert.deepEqual(state.basketRows, []);
 });
 
 test('deleting an unknown product returns 404', async () => {

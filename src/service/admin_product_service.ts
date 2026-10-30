@@ -13,6 +13,7 @@ import { createCatalogRepository } from '../repo/catalog_repository';
 import { serializeProduct } from './catalog_service';
 
 const notFoundMessage = 'Product not found.';
+const maxBasketDeleteRetries = 3;
 
 export function validateProductCreate(body: unknown): ProductCreate {
   return validateRequest(productCreateSchema, body);
@@ -71,33 +72,37 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(database: PrismaClient, id: string) {
-  try {
-    await database.$transaction(async (tx) => {
-      const product = await tx.product.findUnique({
-        where: { id },
-        select: { id: true },
-      });
-      if (!product) throw new NotFoundError(notFoundMessage);
+  for (let retry = 0; ; retry += 1) {
+    try {
+      await database.$transaction(async (tx) => {
+        const product = await tx.product.findUnique({
+          where: { id },
+          select: { id: true },
+        });
+        if (!product) throw new NotFoundError(notFoundMessage);
 
-      const ordered = await tx.order_products.findFirst({
-        where: { product_id: id },
-        select: { product_id: true },
-      });
-      if (ordered) throw new ConflictError(orderedProductMessage);
+        const ordered = await tx.order_products.findFirst({
+          where: { product_id: id },
+          select: { product_id: true },
+        });
+        if (ordered) throw new ConflictError(orderedProductMessage);
 
-      await tx.basketItem.deleteMany({ where: { productId: id } });
-      await tx.product.delete({ where: { id } });
-    });
-  } catch (error) {
-    // An order placed after the check above makes the delete violate its foreign key.
-    if (hasCode(error, 'P2003')) {
-      const ordered = await database.order_products.findFirst({
-        where: { product_id: id },
-        select: { product_id: true },
+        await tx.basketItem.deleteMany({ where: { productId: id } });
+        await tx.product.delete({ where: { id } });
       });
-      if (ordered) throw new ConflictError(orderedProductMessage);
+      return;
+    } catch (error) {
+      // An order placed after the check above makes the delete violate its foreign key.
+      if (hasCode(error, 'P2003')) {
+        const ordered = await database.order_products.findFirst({
+          where: { product_id: id },
+          select: { product_id: true },
+        });
+        if (ordered) throw new ConflictError(orderedProductMessage);
+        if (retry < maxBasketDeleteRetries) continue;
+      }
+      if (hasCode(error, 'P2025')) throw new NotFoundError(notFoundMessage);
+      throw error;
     }
-    if (hasCode(error, 'P2025')) throw new NotFoundError(notFoundMessage);
-    throw error;
   }
 }
