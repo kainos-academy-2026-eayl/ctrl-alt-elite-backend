@@ -1,5 +1,6 @@
-import { type RequestHandler, Router } from 'express';
+import { Router } from 'express';
 import type { PrismaClient } from '../generated/prisma/client';
+import { noStore } from '../middleware/no_store';
 import { requireJson } from '../middleware/requireJson';
 import {
   addTicketComment,
@@ -15,12 +16,6 @@ import {
   validateSupportTicket,
   validateTicketId,
 } from '../service/support_ticket_service';
-
-// The frontend polls ticket status and comments, so responses must never be cached.
-const noStore: RequestHandler = (_req, res, next) => {
-  res.set('Cache-Control', 'no-store');
-  next();
-};
 
 export function createSupportTicketRouter(database: PrismaClient): Router {
   const router = Router();

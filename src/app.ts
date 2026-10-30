@@ -9,7 +9,9 @@ import { BasketController } from './controllers/basketController';
 import type { PrismaClient } from './generated/prisma/client';
 import { createAuthorization } from './middleware/authorization_middleware';
 import { ErrorHandler } from './middleware/error_handler_middleware';
+import { noStore } from './middleware/no_store';
 import { BasketRepository } from './repo/basket_repository';
+import { createAdminProductRouter } from './routes/admin_product_routes';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import {
@@ -59,6 +61,18 @@ export function createApp(
     createAuthorization(database, jwtSecret);
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
+
+  // Product images need a larger body than the 16kb default. Mounting this
+  // before the global parser keeps the limit scoped to this route, and the
+  // admin check runs first so anonymous callers cannot send large bodies.
+  app.use(
+    '/api/admin/products',
+    noStore,
+    requireAdmin,
+    express.json({ limit: '1.5mb' }),
+    createAdminProductRouter(database),
+  );
+
   app.use(express.json({ limit: '16kb' }));
 
   app.get('/health', (_req: Request, res: Response) => {
