@@ -77,11 +77,26 @@ propagate to the existing shared error handler; missing products still return
 Customer validation limits, pagination defaults, sort options and messages are
 defined in [customer resources](src/resources/customer_resources.ts).
 
-Customer APIs require a valid login token and the current database role `ADMIN`.
-Both `/api/admin/customers` and the existing `/api/customers` URLs are protected,
-including their `/{id}` endpoints. The entire `/api/admin` namespace is protected
-for all methods, so new endpoints mounted there inherit the authorization check.
-Orders and product endpoints are not implemented by this change.
+Customer APIs require a valid login token and the current database role `ADMIN`
+or `CUSTOMER_SERVICE`. Both `/api/admin/customers` and the existing
+`/api/customers` URLs are protected, including their `/{id}` endpoints.
+`CUSTOMER_SERVICE` can only read customers; `PUT` endpoints are `ADMIN` only.
+
+Staff roles and the admin namespace:
+
+| Endpoint | `ADMIN` | `CUSTOMER_SERVICE` |
+| --- | --- | --- |
+| `/api/admin/profile`, `/api/admin/change-password` | yes | yes |
+| `GET /api/admin/customers[/:id]` | yes | yes |
+| `PUT /api/admin/customers/:id[/password]` | yes | 403 |
+| `/api/admin/support/tickets/**` | yes | yes |
+| Any other `/api/admin/**` endpoint | yes | 403 |
+
+Staff-accessible routes are listed explicitly in `src/app.ts` with `requireStaff`;
+everything else under `/api/admin` falls through to an `ADMIN`-only guard, so new
+admin endpoints are denied to other roles by default. To add a role (for example
+Finance), add it to the `Role` enum and `supportedRoles`, then add it to the
+relevant `requireRole` lists in the authorization middleware.
 
 ### Authentication and authorization
 
@@ -96,6 +111,8 @@ secret invalidates existing tokens. Use HTTPS outside local development.
 ```json
 {
   "userId": "d397293a-53f9-4c51-aa7a-91f69eb53a75",
+  "firstName": "Ada",
+  "lastName": "Lovelace",
   "email": "admin@example.com",
   "role": "ADMIN",
   "token": "<signed-jwt>"
@@ -111,9 +128,8 @@ Client-supplied role headers or request fields do not grant access.
 
 - Missing, invalid or expired token, or deleted user: `401` with
   `{ "message": "Authentication required." }`.
-- Authenticated user without `ADMIN` (including missing/unsupported roles):
-  `403` with
-  `{ "message": "Access denied. Administrator privileges required." }`.
+- Authenticated user whose role is not permitted (including missing/unsupported
+  roles): `403` with `{ "message": "Access denied. ... privileges required." }`.
 - Database unavailable: logged `503`; other unexpected failures: logged `500`.
 
 Denied access attempts are logged without credentials or tokens. Health, login,

@@ -55,10 +55,8 @@ export function createApp(
   jwtSecret: string,
   services: AppServices = createServices(database),
 ): Express {
-  const { issueToken, requireAdmin, requireTicketUser } = createAuthorization(
-    database,
-    jwtSecret,
-  );
+  const { issueToken, requireAdmin, requireStaff, requireTicketUser } =
+    createAuthorization(database, jwtSecret);
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
   app.use(express.json({ limit: '16kb' }));
@@ -113,7 +111,7 @@ export function createApp(
     res.json({ customer: await getCustomer(database, String(req.params.id)) });
   });
 
-  customers.put('/:id', async (req: Request, res: Response) => {
+  customers.put('/:id', requireAdmin, async (req: Request, res: Response) => {
     if (!req.is('application/json')) {
       res
         .status(415)
@@ -126,54 +124,73 @@ export function createApp(
     });
   });
 
-  customers.put('/:id/password', async (req: Request, res: Response) => {
-    if (!req.is('application/json')) {
-      res
-        .status(415)
-        .json({ message: 'Content-Type must be application/json.' });
-      return;
-    }
-    const change = validateCustomerPasswordReset(req.body);
-    await resetCustomerPassword(database, String(req.params.id), change);
-    res.json({ message: 'Password reset successfully.' });
-  });
+  customers.put(
+    '/:id/password',
+    requireAdmin,
+    async (req: Request, res: Response) => {
+      if (!req.is('application/json')) {
+        res
+          .status(415)
+          .json({ message: 'Content-Type must be application/json.' });
+        return;
+      }
+      const change = validateCustomerPasswordReset(req.body);
+      await resetCustomerPassword(database, String(req.params.id), change);
+      res.json({ message: 'Password reset successfully.' });
+    },
+  );
 
-  app.use('/api/admin', requireAdmin);
+  // Staff-accessible admin routes are listed explicitly; anything else under
+  // /api/admin falls through to the ADMIN-only guard below.
+  app.get(
+    '/api/admin/profile',
+    requireStaff,
+    async (_req: Request, res: Response) => {
+      res.json(await getAdminProfile(database, res.locals.userId));
+    },
+  );
 
-  app.get('/api/admin/profile', async (_req: Request, res: Response) => {
-    res.json(await getAdminProfile(database, res.locals.userId));
-  });
+  app.put(
+    '/api/admin/profile',
+    requireStaff,
+    async (req: Request, res: Response) => {
+      if (!req.is('application/json')) {
+        res
+          .status(415)
+          .json({ message: 'Content-Type must be application/json.' });
+        return;
+      }
+      const profile = validateProfileUpdate(req.body);
+      res.json(await updateAdminProfile(database, res.locals.userId, profile));
+    },
+  );
 
-  app.put('/api/admin/profile', async (req: Request, res: Response) => {
-    if (!req.is('application/json')) {
-      res
-        .status(415)
-        .json({ message: 'Content-Type must be application/json.' });
-      return;
-    }
-    const profile = validateProfileUpdate(req.body);
-    res.json(await updateAdminProfile(database, res.locals.userId, profile));
-  });
-
-  app.put('/api/admin/change-password', async (req: Request, res: Response) => {
-    if (!req.is('application/json')) {
-      res
-        .status(415)
-        .json({ message: 'Content-Type must be application/json.' });
-      return;
-    }
-    const change = validatePasswordChange(req.body);
-    await changeAdminPassword(database, res.locals.userId, change);
-    res.json({ message: 'Password updated successfully.' });
-  });
+  app.put(
+    '/api/admin/change-password',
+    requireStaff,
+    async (req: Request, res: Response) => {
+      if (!req.is('application/json')) {
+        res
+          .status(415)
+          .json({ message: 'Content-Type must be application/json.' });
+        return;
+      }
+      const change = validatePasswordChange(req.body);
+      await changeAdminPassword(database, res.locals.userId, change);
+      res.json({ message: 'Password updated successfully.' });
+    },
+  );
 
   app.use(
     '/api/admin/support/tickets',
+    requireStaff,
     createAdminSupportTicketRouter(database),
   );
 
-  app.use('/api/admin/customers', customers);
-  app.use('/api/customers', requireAdmin, customers);
+  app.use('/api/admin/customers', requireStaff, customers);
+  app.use('/api/customers', requireStaff, customers);
+
+  app.use('/api/admin', requireAdmin);
 
   app.use(
     '/api/baskets',
