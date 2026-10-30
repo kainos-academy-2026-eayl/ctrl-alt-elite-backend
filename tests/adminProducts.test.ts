@@ -306,6 +306,9 @@ test('invalid images are rejected', async () => {
 
   const textAsPng = `data:image/png;base64,${Buffer.from('not an image').toString('base64')}`;
   const jpegAsPng = `data:image/png;base64,${Buffer.from('ffd8ffe000104a464946', 'hex').toString('base64')}`;
+  const pngSignatureOnly = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a', 'hex').toString('base64')}`;
+  const jpegHeaderOnly = `data:image/jpeg;base64,${Buffer.from('ffd8ff', 'hex').toString('base64')}`;
+  const webpHeaderOnly = `data:image/webp;base64,${Buffer.from('524946460400000057454250', 'hex').toString('base64')}`;
   const gif = `data:image/gif;base64,${Buffer.from('GIF89a').toString('base64')}`;
   const notBase64 = 'data:image/png;base64,@@@@';
   const noPrefix = pngBytes.toString('base64');
@@ -317,6 +320,9 @@ test('invalid images are rejected', async () => {
   for (const image of [
     textAsPng,
     jpegAsPng,
+    pngSignatureOnly,
+    jpegHeaderOnly,
+    webpHeaderOnly,
     gif,
     notBase64,
     noPrefix,
