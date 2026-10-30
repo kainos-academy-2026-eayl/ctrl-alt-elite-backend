@@ -1,4 +1,5 @@
 import type { CatalogProduct } from '../models/catalog_model';
+import { detectImageType } from '../models/product_image';
 import { findProducts } from '../models/product_search_model';
 import type { CatalogRepository } from '../repo/catalog_repository';
 
@@ -22,25 +23,14 @@ export interface ProductSearchResultDto {
 /** Turns stored image bytes into a data: URL the browser can show directly. */
 function toImageDataUrl(imageBytes: Uint8Array): string {
   const image = Buffer.from(imageBytes);
-  let mimeType: string;
-  if (image.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'))) {
-    mimeType = 'image/png';
-  } else if (image.subarray(0, 3).equals(Buffer.from('ffd8ff', 'hex'))) {
-    mimeType = 'image/jpeg';
-  } else if (
-    image.subarray(0, 4).equals(Buffer.from('RIFF')) &&
-    image.subarray(8, 12).equals(Buffer.from('WEBP'))
-  ) {
-    mimeType = 'image/webp';
-  } else if (image.toString('utf8').trimStart().startsWith('<svg ')) {
-    mimeType = 'image/svg+xml';
-  } else {
+  const mimeType = detectImageType(image);
+  if (!mimeType) {
     throw new Error('Product image must contain PNG, JPEG, WebP or SVG data.');
   }
   return `data:${mimeType};base64,${image.toString('base64')}`;
 }
 
-function serializeProduct(product: CatalogProduct) {
+export function serializeProduct(product: CatalogProduct) {
   return { ...product, image: toImageDataUrl(product.image) };
 }
 
