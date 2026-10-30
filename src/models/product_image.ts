@@ -21,7 +21,11 @@ export function detectImageType(image: Uint8Array): ImageMimeType | null {
   ) {
     return 'image/webp';
   }
-  if (bytes.toString('utf8').trimStart().startsWith('<svg ')) {
+  if (
+    /^(?:<\?xml\b[^?]*\?>\s*)?<svg(?:[\s/>])/i.test(
+      bytes.toString('utf8').trimStart(),
+    )
+  ) {
     return 'image/svg+xml';
   }
   return null;

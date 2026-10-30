@@ -354,6 +354,18 @@ test('SVGs with active content are rejected and safe SVGs accepted', async () =>
     assert.equal((await post(markup)).status, 400, markup);
   }
   assert.equal((await post(svgBytes.toString())).status, 201);
+  assert.equal(
+    (
+      await post(
+        '<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+      )
+    ).status,
+    201,
+  );
+  assert.equal(
+    (await post('<svg\nxmlns="http://www.w3.org/2000/svg"></svg>')).status,
+    201,
+  );
 });
 
 test('a request body over 1.5 MB is rejected with 413', async () => {
