@@ -20,7 +20,7 @@ export const orderSchema = z
 
 export const orderSelect = {
   id: true,
-  customer: true,
+  customerId: true,
   products: {
     select: {
       product_id: true,
