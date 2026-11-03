@@ -57,3 +57,11 @@ model Product {
     orderEntries order_products[]
 }
 
+model audit {
+  id           String   @id @default(uuid())
+  description  String   @default("")
+  createdAt    DateTime @default(now())
+  adminId      String
+  admin       User   @relation(fields: [UserId], references: [id])
+}
+
