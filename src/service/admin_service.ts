@@ -86,7 +86,7 @@ export async function getAdminProfile(database: PrismaClient, userId: string) {
   if (!user) throw new AdminNotFoundError();
   return {
     id: user.id,
-    name: `${user.firstName} ${user.lastName}`,
+    name: `${user.firstName} ${user.lastName}`.trim(),
     email: user.email,
     role: user.role,
   };

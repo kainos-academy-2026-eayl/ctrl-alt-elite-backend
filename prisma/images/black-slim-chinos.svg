@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Black slim chinos</title>
+  <rect width="640" height="480" fill="#eceff3"/>
+  <ellipse cx="320" cy="438" rx="150" ry="14" fill="#d6dbe2"/>
+  <path d="M240 60H400L420 430H342L320 190 298 430H220Z" fill="#1f2937"/>
+  <rect x="240" y="60" width="160" height="26" fill="#111827"/>
+  <path d="M320 86V190" stroke="#0b1220" stroke-width="3"/>
+  <path d="M248 100q28 26 58 4M392 100q-28 26-58 4" fill="none" stroke="#374151" stroke-width="4"/>
+  <circle cx="320" cy="73" r="5" fill="#9ca3af"/>
+</svg>

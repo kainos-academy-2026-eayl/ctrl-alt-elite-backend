@@ -19,16 +19,20 @@ function databaseReturning(user: Record<string, unknown> | null) {
 
 const credentials = { email: ' Admin@Company.com ', password };
 
-for (const role of ['CUSTOMER', 'ADMIN']) {
-  test(`returns the user id, email and ${role} role on success`, async () => {
+for (const role of ['CUSTOMER', 'ADMIN', 'CUSTOMER_SERVICE']) {
+  test(`returns the user id, name, email and ${role} role on success`, async () => {
     const database = databaseReturning({
       id: 'user-1',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
       email: 'admin@company.com',
       passwordHash,
       role,
     });
     assert.deepEqual(await authenticateUser(database, credentials), {
       userId: 'user-1',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
       email: 'admin@company.com',
       role,
     });

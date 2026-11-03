@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Orange and grey running trainer</title>
+  <rect width="640" height="480" fill="#f1f3f6"/>
+  <ellipse cx="320" cy="385" rx="230" ry="16" fill="#dadfe7"/>
+  <path d="M110 300Q110 220 175 205L245 190Q285 225 360 225 460 230 535 290 550 305 540 330H110Z" fill="#6b7280"/>
+  <path d="M235 190Q290 240 360 232 430 236 480 270Q420 270 360 262 280 262 235 190Z" fill="#ff7a1a"/>
+  <path d="M110 320H545Q552 372 505 376H130Q108 372 110 330Z" fill="#f8fafc"/>
+  <path d="M130 345Q300 358 520 345" fill="none" stroke="#ff7a1a" stroke-width="8" stroke-linecap="round"/>
+  <path d="M115 258Q110 320 150 322H245V240Q170 240 115 258Z" fill="#4b5563"/>
+  <g stroke="#f8fafc" stroke-width="5" stroke-linecap="round"><path d="M280 215l36 18M300 205l36 18"/></g>
+</svg>

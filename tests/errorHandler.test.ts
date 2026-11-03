@@ -2,6 +2,11 @@ import assert from 'node:assert/strict';
 import { mock, test } from 'node:test';
 import type { Request, Response } from 'express';
 import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from '../src/errors/appErrors';
+import {
   CustomerNotFoundError,
   CustomerValidationError,
 } from '../src/errors/customer_errors';
@@ -66,7 +71,28 @@ const cases = [
     statusCode: 413,
     message: 'Request body is too large.',
   },
+  {
+    name: 'returns 404 for a missing resource',
+    error: new NotFoundError('Basket not found. Please start a new basket.'),
+    statusCode: 404,
+    message: 'Basket not found. Please start a new basket.',
+  },
+  {
+    name: 'returns 409 for a conflicting request',
+    error: new ConflictError('You already have the maximum'),
+    statusCode: 409,
+    message: 'You already have the maximum',
+  },
 ];
+
+test('returns 400 with field-level errors for validation errors', () => {
+  const errors = [{ field: 'quantity', message: 'Quantity is invalid.' }];
+  const { status, json } = handleError(new ValidationError(errors));
+  assert.deepEqual(status.mock.calls[0]?.arguments, [400]);
+  assert.deepEqual(json.mock.calls[0]?.arguments, [
+    { message: 'Quantity is invalid.', errors },
+  ]);
+});
 
 for (const { name, error, statusCode, message } of cases) {
   test(name, () => {

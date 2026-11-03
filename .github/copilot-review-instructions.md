@@ -35,8 +35,10 @@ of **why** it matters and a hint toward the solution.
   method. Flag logic in route handlers.
 - Separate `app.ts` (setup, middleware, routers) from `index.ts` (only
   `app.listen()`). This enables testing without starting a server.
-- Organise `src/` by role: `routes/`, `controllers/`, `services/`, `models/`,
-  `dtos/`, `middleware/`. Flag mixed-responsibility files.
+- Organise `src/` by role: `routes/`, `controllers/`, `service/`, `repo/`,
+  `models/`, `middleware/`. Database access belongs in `repo/`; request/response
+  DTOs live alongside their domain model in `models/`. Flag mixed-responsibility
+  files.
 - Use domain model classes with constructor validation for internal data. Use
   DTOs (plain interfaces) for API request/response contracts.
 - Request DTOs must only accept what the client should provide (no `id`, no

@@ -5,10 +5,19 @@ import express, {
   type Response,
   Router,
 } from 'express';
+import { BasketController } from './controllers/basketController';
 import type { PrismaClient } from './generated/prisma/client';
 import { createAuthorization } from './middleware/authorization_middleware';
 import { ErrorHandler } from './middleware/error_handler_middleware';
+import { noStore } from './middleware/no_store';
+import { BasketRepository } from './repo/basket_repository';
+import { createAdminProductRouter } from './routes/admin_product_routes';
+import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
+import {
+  createAdminSupportTicketRouter,
+  createSupportTicketRouter,
+} from './routes/support_ticket_routes';
 import {
   changeAdminPassword,
   getAdminProfile,
@@ -16,6 +25,7 @@ import {
   validatePasswordChange,
   validateProfileUpdate,
 } from './service/admin_service';
+import { BasketService } from './service/basketService';
 import {
   getCustomer,
   listCustomers,
@@ -31,14 +41,38 @@ import {
   validateRegistration,
 } from './service/registration_service';
 
+export interface AppServices {
+  basketService: BasketService;
+}
+
+export function createServices(database: PrismaClient): AppServices {
+  return {
+    basketService: new BasketService(new BasketRepository(database)),
+  };
+}
+
 export function createApp(
   database: PrismaClient,
   frontendOrigin: string,
   jwtSecret: string,
+  services: AppServices = createServices(database),
 ): Express {
-  const { issueToken, requireAdmin } = createAuthorization(database, jwtSecret);
+  const { issueToken, requireAdmin, requireStaff, requireTicketUser } =
+    createAuthorization(database, jwtSecret);
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
+
+  // Product images need a larger body than the 16kb default. Mounting this
+  // before the global parser keeps the limit scoped to this route, and the
+  // admin check runs first so anonymous callers cannot send large bodies.
+  app.use(
+    '/api/admin/products',
+    noStore,
+    requireAdmin,
+    express.json({ limit: '1.5mb' }),
+    createAdminProductRouter(database),
+  );
+
   app.use(express.json({ limit: '16kb' }));
 
   app.get('/health', (_req: Request, res: Response) => {
@@ -46,6 +80,12 @@ export function createApp(
   });
 
   app.use('/api', createCatalogRouter(database));
+
+  app.use(
+    '/api/support/tickets',
+    requireTicketUser,
+    createSupportTicketRouter(database),
+  );
 
   app.post('/api/auth/register', async (req: Request, res: Response) => {
     if (!req.is('application/json')) {
@@ -85,7 +125,7 @@ export function createApp(
     res.json({ customer: await getCustomer(database, String(req.params.id)) });
   });
 
-  customers.put('/:id', async (req: Request, res: Response) => {
+  customers.put('/:id', requireAdmin, async (req: Request, res: Response) => {
     if (!req.is('application/json')) {
       res
         .status(415)
@@ -98,49 +138,78 @@ export function createApp(
     });
   });
 
-  customers.put('/:id/password', async (req: Request, res: Response) => {
-    if (!req.is('application/json')) {
-      res
-        .status(415)
-        .json({ message: 'Content-Type must be application/json.' });
-      return;
-    }
-    const change = validateCustomerPasswordReset(req.body);
-    await resetCustomerPassword(database, String(req.params.id), change);
-    res.json({ message: 'Password reset successfully.' });
-  });
+  customers.put(
+    '/:id/password',
+    requireAdmin,
+    async (req: Request, res: Response) => {
+      if (!req.is('application/json')) {
+        res
+          .status(415)
+          .json({ message: 'Content-Type must be application/json.' });
+        return;
+      }
+      const change = validateCustomerPasswordReset(req.body);
+      await resetCustomerPassword(database, String(req.params.id), change);
+      res.json({ message: 'Password reset successfully.' });
+    },
+  );
+
+  // Staff-accessible admin routes are listed explicitly; anything else under
+  // /api/admin falls through to the ADMIN-only guard below.
+  app.get(
+    '/api/admin/profile',
+    requireStaff,
+    async (_req: Request, res: Response) => {
+      res.json(await getAdminProfile(database, res.locals.userId));
+    },
+  );
+
+  app.put(
+    '/api/admin/profile',
+    requireStaff,
+    async (req: Request, res: Response) => {
+      if (!req.is('application/json')) {
+        res
+          .status(415)
+          .json({ message: 'Content-Type must be application/json.' });
+        return;
+      }
+      const profile = validateProfileUpdate(req.body);
+      res.json(await updateAdminProfile(database, res.locals.userId, profile));
+    },
+  );
+
+  app.put(
+    '/api/admin/change-password',
+    requireStaff,
+    async (req: Request, res: Response) => {
+      if (!req.is('application/json')) {
+        res
+          .status(415)
+          .json({ message: 'Content-Type must be application/json.' });
+        return;
+      }
+      const change = validatePasswordChange(req.body);
+      await changeAdminPassword(database, res.locals.userId, change);
+      res.json({ message: 'Password updated successfully.' });
+    },
+  );
+
+  app.use(
+    '/api/admin/support/tickets',
+    requireStaff,
+    createAdminSupportTicketRouter(database),
+  );
+
+  app.use('/api/admin/customers', requireStaff, customers);
+  app.use('/api/customers', requireStaff, customers);
 
   app.use('/api/admin', requireAdmin);
 
-  app.get('/api/admin/profile', async (_req: Request, res: Response) => {
-    res.json(await getAdminProfile(database, res.locals.userId));
-  });
-
-  app.put('/api/admin/profile', async (req: Request, res: Response) => {
-    if (!req.is('application/json')) {
-      res
-        .status(415)
-        .json({ message: 'Content-Type must be application/json.' });
-      return;
-    }
-    const profile = validateProfileUpdate(req.body);
-    res.json(await updateAdminProfile(database, res.locals.userId, profile));
-  });
-
-  app.put('/api/admin/change-password', async (req: Request, res: Response) => {
-    if (!req.is('application/json')) {
-      res
-        .status(415)
-        .json({ message: 'Content-Type must be application/json.' });
-      return;
-    }
-    const change = validatePasswordChange(req.body);
-    await changeAdminPassword(database, res.locals.userId, change);
-    res.json({ message: 'Password updated successfully.' });
-  });
-
-  app.use('/api/admin/customers', customers);
-  app.use('/api/customers', requireAdmin, customers);
+  app.use(
+    '/api/baskets',
+    createBasketRouter(new BasketController(services.basketService)),
+  );
 
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);

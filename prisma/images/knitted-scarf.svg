@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Striped knitted scarf</title>
+  <rect width="640" height="480" fill="#f2efe8"/>
+  <ellipse cx="320" cy="440" rx="160" ry="14" fill="#e1dccf"/>
+  <defs><clipPath id="scarf"><path d="M170 120Q320 60 470 120V190Q320 140 170 190Z M170 190H260V400H170Z M380 190H470V400H380Z"/></clipPath></defs>
+  <g clip-path="url(#scarf)">
+    <rect x="160" y="50" width="320" height="360" fill="#d9534f"/>
+    <g fill="#f5e6c8"><rect x="160" y="100" width="320" height="18"/><rect x="160" y="150" width="320" height="18"/><rect x="160" y="230" width="320" height="18"/><rect x="160" y="290" width="320" height="18"/><rect x="160" y="350" width="320" height="18"/></g>
+  </g>
+  <g stroke="#d9534f" stroke-width="4" stroke-linecap="round"><path d="M180 400v22M200 400v22M220 400v22M240 400v22M390 400v22M410 400v22M430 400v22M450 400v22"/></g>
+</svg>

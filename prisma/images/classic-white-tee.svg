@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Classic white t-shirt</title>
+  <rect width="640" height="480" fill="#e8eef5"/>
+  <ellipse cx="320" cy="425" rx="170" ry="16" fill="#d3dce8"/>
+  <path d="M215 130 275 105Q320 140 365 105L425 130 490 200 440 240 405 205V385H235V205L200 240 150 200Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M275 105Q320 140 365 105" fill="none" stroke="#cbd5e1" stroke-width="8"/>
+  <path d="M235 370H405" stroke="#e2e8f0" stroke-width="3"/>
+</svg>

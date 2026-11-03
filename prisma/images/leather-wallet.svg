@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Brown leather wallet with cards</title>
+  <rect width="640" height="480" fill="#f3ede6"/>
+  <ellipse cx="320" cy="390" rx="200" ry="16" fill="#e2d7c9"/>
+  <rect x="190" y="130" width="230" height="150" rx="10" fill="#4a90d9" transform="rotate(-8 305 205)"/>
+  <rect x="210" y="115" width="230" height="150" rx="10" fill="#e8c06a" transform="rotate(4 325 190)"/>
+  <rect x="140" y="170" width="360" height="200" rx="22" fill="#7a4a27"/>
+  <path d="M140 250H500" stroke="#5c3519" stroke-width="5"/>
+  <rect x="152" y="182" width="336" height="176" rx="14" fill="none" stroke="#c99062" stroke-width="3" stroke-dasharray="9 7"/>
+  <rect x="430" y="270" width="70" height="40" rx="10" fill="#5c3519"/>
+  <circle cx="465" cy="290" r="7" fill="#e8c06a"/>
+</svg>

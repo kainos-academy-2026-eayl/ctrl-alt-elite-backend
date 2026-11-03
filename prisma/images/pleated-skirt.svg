@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Plum pleated skirt</title>
+  <rect width="640" height="480" fill="#f4eef5"/>
+  <ellipse cx="320" cy="425" rx="190" ry="14" fill="#e3d6e6"/>
+  <path d="M250 90H390L470 400H170Z" fill="#8e4a8f"/>
+  <rect x="250" y="90" width="140" height="24" fill="#6f3a70"/>
+  <g stroke="#6f3a70" stroke-width="4"><path d="M270 114 235 400M295 114 275 400M320 114V400M345 114 365 400M370 114 405 400"/></g>
+  <g stroke="#a96aaa" stroke-width="3"><path d="M282 114 255 400M307 114 297 400M333 114 343 400M358 114 385 400"/></g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Black t-shirt with a lightning bolt print</title>
+  <rect width="640" height="480" fill="#eceef3"/>
+  <ellipse cx="320" cy="425" rx="170" ry="16" fill="#d5d9e2"/>
+  <path d="M215 130 275 105Q320 140 365 105L425 130 490 200 440 240 405 205V385H235V205L200 240 150 200Z" fill="#1f2230"/>
+  <path d="M275 105Q320 140 365 105" fill="none" stroke="#12141d" stroke-width="8"/>
+  <circle cx="320" cy="250" r="62" fill="#ff4f8b"/>
+  <path d="M338 195 292 262H322L304 308 352 238H322Z" fill="#ffe14d"/>
+</svg>

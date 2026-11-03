@@ -29,5 +29,11 @@ export async function authenticateUser(
 
   if (!isSupportedRole(user.role)) throw new RoleNotDeterminedError();
 
-  return { userId: user.id, email: user.email, role: user.role };
+  return {
+    userId: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+  };
 }

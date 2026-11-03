@@ -7,6 +7,11 @@ import {
   SamePasswordError,
 } from '../errors/admin_errors';
 import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from '../errors/appErrors';
+import {
   CustomerEmailInUseError,
   CustomerNotFoundError,
   CustomerValidationError,
@@ -39,6 +44,12 @@ export class ErrorHandler {
       error instanceof SamePasswordError
     ) {
       res.status(400).json({ message: error.message });
+    } else if (error instanceof ValidationError) {
+      res.status(400).json({ message: error.message, errors: error.errors });
+    } else if (error instanceof NotFoundError) {
+      res.status(404).json({ message: error.message });
+    } else if (error instanceof ConflictError) {
+      res.status(409).json({ message: error.message });
     } else if (error instanceof EmailAlreadyInUseError) {
       res.status(409).json({ message: error.message });
     } else if (

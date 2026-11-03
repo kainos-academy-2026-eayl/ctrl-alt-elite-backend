@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Floral midi dress</title>
+  <rect width="640" height="480" fill="#f5eef6"/>
+  <ellipse cx="320" cy="445" rx="170" ry="12" fill="#e6d8e8"/>
+  <path d="M275 40 295 40 320 80 345 40 365 40 385 150 355 195 430 430H210L285 195 255 150Z" fill="#f7e3ea"/>
+  <path d="M285 195H355" stroke="#d96b8f" stroke-width="12"/>
+  <g fill="#e0577f"><circle cx="270" cy="270" r="12"/><circle cx="355" cy="290" r="12"/><circle cx="305" cy="340" r="12"/><circle cx="395" cy="375" r="12"/><circle cx="245" cy="390" r="12"/><circle cx="330" cy="410" r="12"/><circle cx="315" cy="235" r="10"/></g>
+  <g fill="#f7c948"><circle cx="270" cy="270" r="4"/><circle cx="355" cy="290" r="4"/><circle cx="305" cy="340" r="4"/><circle cx="395" cy="375" r="4"/><circle cx="245" cy="390" r="4"/><circle cx="330" cy="410" r="4"/><circle cx="315" cy="235" r="3"/></g>
+  <g fill="#5fa86b"><ellipse cx="290" cy="300" rx="10" ry="4" transform="rotate(30 290 300)"/><ellipse cx="370" cy="340" rx="10" ry="4" transform="rotate(-30 370 340)"/><ellipse cx="280" cy="365" rx="10" ry="4" transform="rotate(-20 280 365)"/></g>
+</svg>
