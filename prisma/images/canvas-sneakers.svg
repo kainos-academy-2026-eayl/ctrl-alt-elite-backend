@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Navy canvas sneaker</title>
+  <rect width="640" height="480" fill="#edf1f6"/>
+  <ellipse cx="320" cy="385" rx="220" ry="16" fill="#d5dce7"/>
+  <path d="M120 270Q130 200 190 190L260 175Q300 210 370 215 470 222 520 280V330H120Z" fill="#2c4a7c"/>
+  <path d="M140 320H530Q536 372 500 372H150Q122 372 120 335Z" fill="#f8fafc"/>
+  <path d="M120 318H530" stroke="#c8d0dc" stroke-width="6"/>
+  <path d="M120 270Q122 300 135 318H260V250Q190 255 120 270Z" fill="#f8fafc"/>
+  <g stroke="#f8fafc" stroke-width="5" stroke-linecap="round"><path d="M290 205l30 20M310 195l30 20M330 200l30 20"/></g>
+  <circle cx="190" cy="285" r="10" fill="#c8d0dc"/>
+</svg>

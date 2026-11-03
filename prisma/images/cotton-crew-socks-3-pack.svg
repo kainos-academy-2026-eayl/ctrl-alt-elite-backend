@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Three pairs of crew socks</title>
+  <rect width="640" height="480" fill="#f1f4f8"/>
+  <ellipse cx="320" cy="430" rx="240" ry="14" fill="#dbe1ea"/>
+  <g>
+    <path d="M110 80H210V260Q210 300 250 320 270 345 250 380H140Q100 380 110 330Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="4"/>
+    <rect x="110" y="80" width="100" height="34" fill="#4a90d9"/><rect x="110" y="114" width="100" height="10" fill="#cbd5e1"/>
+    <path d="M110 330Q100 380 140 380H250Q270 345 250 322Q215 300 210 262H112Z" fill="#cbd5e1" opacity="0.5"/>
+  </g>
+  <g>
+    <path d="M270 80H370V260Q370 300 410 320 430 345 410 380H300Q260 380 270 330Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="4"/>
+    <rect x="270" y="80" width="100" height="34" fill="#e0525e"/><rect x="270" y="114" width="100" height="10" fill="#cbd5e1"/>
+  </g>
+  <g>
+    <path d="M430 80H530V260Q530 300 570 320 590 345 570 380H460Q420 380 430 330Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="4"/>
+    <rect x="430" y="80" width="100" height="34" fill="#3fa66b"/><rect x="430" y="114" width="100" height="10" fill="#cbd5e1"/>
+  </g>
+</svg>

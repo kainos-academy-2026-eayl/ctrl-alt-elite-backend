@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Teal fleece zip-up jacket</title>
+  <rect width="640" height="480" fill="#eaf2f1"/>
+  <ellipse cx="320" cy="438" rx="170" ry="14" fill="#cfe0de"/>
+  <path d="M250 80 290 62H350L390 80 450 110 490 370H435L425 200V405H215V200L205 370H150L190 110Z" fill="#3c8b86"/>
+  <path d="M290 62H350L355 105Q320 125 285 105Z" fill="#2f726e"/>
+  <path d="M320 112V405" stroke="#1f4f4c" stroke-width="5"/>
+  <g stroke="#cfe0de" stroke-width="3"><path d="M312 130h16M312 150h16M312 170h16M312 190h16M312 210h16M312 230h16M312 250h16M312 270h16M312 290h16M312 310h16M312 330h16M312 350h16M312 370h16"/></g>
+  <rect x="318" y="115" width="8" height="26" rx="2" fill="#e8c06a"/>
+  <path d="M232 250Q270 270 300 250M340 250Q370 270 408 250" fill="none" stroke="#2f726e" stroke-width="5" stroke-linecap="round"/>
+</svg>
