@@ -18,6 +18,10 @@ model User {
   lastName     String   @db.VarChar(100)
   email        String   @unique @db.VarChar(254)
   passwordHash String
+  username     String?  @unique @db.VarChar(30)
+  description  String   @default("") @db.VarChar(1000)
+  pronouns     String   @default("") @db.VarChar(100)
+  profilePhoto Bytes?
   role         Role     @default(CUSTOMER)
   createdAt    DateTime @default(now())
   orders       order[]
