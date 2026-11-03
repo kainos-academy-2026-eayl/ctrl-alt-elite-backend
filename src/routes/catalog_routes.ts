@@ -11,8 +11,9 @@ export function createCatalogRouter(database: PrismaClient) {
   const controller = createCatalogController(service);
 
   router.get('/products', controller.getAll);
-  // Must come before /products/:id, or "search" would be treated as an id.
+  // Must come before /products/:id, or these words would be treated as ids.
   router.get('/products/search', controller.search);
+  router.get('/products/popular', controller.getPopular);
   router.get('/products/:id', controller.getById);
 
   return router;
