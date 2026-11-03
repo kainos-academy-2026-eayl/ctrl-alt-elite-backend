@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import type { Prisma, PrismaClient } from '../generated/prisma/client';
 
-
-
 const orderItemSchema = z.strictObject({
   productId: z.string().uuid(),
   quantity: z.number().int().positive().safe(),
@@ -20,20 +18,20 @@ export const orderSchema = z
     { message: 'Each product may appear only once.' },
   );
 
-  export const orderSelect = {
-    id: true,
-    customer: true,
-    products: {
-      select: {
-        product_id: true,
-        amount: true,
-      },
+export const orderSelect = {
+  id: true,
+  customer: true,
+  products: {
+    select: {
+      product_id: true,
+      amount: true,
     },
-  } as const satisfies Prisma.orderSelect;
+  },
+} as const satisfies Prisma.orderSelect;
 
-  export type CreateOrderInput = z.infer<typeof orderSchema>;
-  
-  export type Order = Prisma.orderGetPayload<{
+export type CreateOrderInput = z.infer<typeof orderSchema>;
+
+export type Order = Prisma.orderGetPayload<{
   select: typeof orderSelect;
 }>;
 

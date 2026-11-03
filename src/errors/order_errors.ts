@@ -1,18 +1,14 @@
-import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from './appErrors';
+import { ConflictError, NotFoundError, ValidationError } from './appErrors';
 
 export class OrderValidationError extends ValidationError {
-    constructor() {
-        super([
-  {
-    field: 'items',
-    message: 'Please provide valid order details.',
-  },
-]);
-    }
+  constructor() {
+    super([
+      {
+        field: 'items',
+        message: 'Please provide valid order details.',
+      },
+    ]);
+  }
 }
 
 export class OrderProductNotFoundError extends NotFoundError {
