@@ -142,6 +142,20 @@ test('should throw ValidationError when the product is not in the catalogue', as
   });
 });
 
+test('should reject adding a product that is marked out of stock', async () => {
+  database.product.findUnique.mock.mockImplementation(async () => ({
+    name: 'Desk Lamp',
+    outOfStock: true,
+  }));
+
+  await assert.rejects(service.addItem(BASKET_ID, 'sample-lamp'), {
+    constructor: ConflictError,
+    message: 'Desk Lamp is out of stock.',
+  });
+  assert.equal(database.basketItem.create.mock.callCount(), 0);
+  assert.equal(database.basketItem.updateMany.mock.callCount(), 0);
+});
+
 test('should throw NotFoundError when adding to a missing basket', async () => {
   database.basket.findUnique.mock.mockImplementation(async () => null);
 

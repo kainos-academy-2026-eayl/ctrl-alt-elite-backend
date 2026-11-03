@@ -16,6 +16,10 @@ export const BASKET_NOT_FOUND_MESSAGE =
 export const PRODUCT_NOT_FOUND_MESSAGE = 'That product is not available.';
 export const ITEM_NOT_FOUND_MESSAGE = 'That item is not in your basket.';
 
+export function outOfStockMessage(productName: string): string {
+  return `${productName} is out of stock.`;
+}
+
 export interface AddItemResult {
   basket: Basket;
   isNewLine: boolean;
@@ -43,12 +47,16 @@ export class BasketService {
   /** Adds one of a product, or one more if it is already in the basket. */
   async addItem(basketId: string, productId: string): Promise<AddItemResult> {
     await this.ensureBasketExists(basketId);
-    const productName = await this.basketRepository.findProductName(productId);
-    if (productName === null) {
+    const product = await this.basketRepository.findProduct(productId);
+    if (product === null) {
       throw new ValidationError([
         { field: 'productId', message: PRODUCT_NOT_FOUND_MESSAGE },
       ]);
     }
+    if (product.outOfStock) {
+      throw new ConflictError(outOfStockMessage(product.name));
+    }
+    const productName = product.name;
 
     const isNewLine = await this.incrementOrCreateLine(
       basketId,

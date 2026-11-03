@@ -30,6 +30,7 @@ function product(
     description: `${name} description`,
     price: 10,
     stock: 5,
+    outOfStock: false,
     image: Uint8Array.from(PNG),
     ...overrides,
   };

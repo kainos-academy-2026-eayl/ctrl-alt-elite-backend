@@ -11,6 +11,7 @@ const product: CatalogProduct = {
   description: 'A compact desk lamp.',
   price: 24.99,
   stock: 8,
+  outOfStock: false,
   image: Buffer.from('89504e470d0a1a0a', 'hex'),
 };
 
@@ -21,6 +22,7 @@ const expectedSelect = {
   description: true,
   price: true,
   stock: true,
+  outOfStock: true,
   image: true,
 };
 
