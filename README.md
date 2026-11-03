@@ -60,8 +60,8 @@ show its temporary-unavailable message.
 2 decimal place string such as `"24.99"`. Only in-stock products are included,
 ranked by total units ordered. If too few products have been ordered, the
 remaining slots are filled with the newest in-stock products. `limit` defaults
-to 6 and is capped at 20; a missing or invalid value uses the default. The
-layers live in the `popular_products_*` files alongside the catalogue layers.
+to 6 and is capped at 20; a missing or invalid value uses the default. It is
+served by the catalogue controller, service and repository.
 
 ## Catalogue architecture
 

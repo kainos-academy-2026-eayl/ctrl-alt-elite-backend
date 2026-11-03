@@ -10,8 +10,11 @@ import {
   normalisePopularLimit,
   type PopularProduct,
 } from '../src/models/popular_products_model';
-import { createPopularProductsRepository } from '../src/repo/popular_products_repository';
-import { createPopularProductsService } from '../src/service/popular_products_service';
+import {
+  type CatalogRepository,
+  createCatalogRepository,
+} from '../src/repo/catalog_repository';
+import { createCatalogService } from '../src/service/catalog_service';
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p94AAAAASUVORK5CYII=',
@@ -24,6 +27,16 @@ function product(id: string, price = 10): PopularProduct {
 }
 
 const select = { id: true, name: true, price: true, image: true };
+
+/** A catalog repository whose popular products methods are the only ones used. */
+function popularRepository(
+  methods: Pick<
+    CatalogRepository,
+    'findTopSellingIds' | 'findInStockByIds' | 'findNewestInStock'
+  >,
+): CatalogRepository {
+  return { findAll: async () => [], findById: async () => null, ...methods };
+}
 
 describe('normalisePopularLimit', () => {
   test('uses the default when limit is missing or invalid', () => {
@@ -48,9 +61,9 @@ describe('popular products repository', () => {
       { product_id: 'b' },
       { product_id: 'a' },
     ]);
-    const repository = createPopularProductsRepository({
+    const repository = createCatalogRepository({
       order_products: { groupBy },
-      product: { findMany: async () => [] },
+      product: { findMany: async () => [], findUnique: async () => null },
     });
 
     assert.deepEqual(await repository.findTopSellingIds(4), ['b', 'a']);
@@ -66,10 +79,10 @@ describe('popular products repository', () => {
   });
 
   test('loads in-stock products by ID and newest in-stock products', async () => {
-    const findMany = mock.fn(async () => [product('a')]);
-    const repository = createPopularProductsRepository({
+    const findMany = mock.fn(async () => []);
+    const repository = createCatalogRepository({
       order_products: { groupBy: async () => [] },
-      product: { findMany },
+      product: { findMany, findUnique: async () => null },
     });
 
     await repository.findInStockByIds(['a', 'b']);
@@ -92,12 +105,14 @@ describe('popular products repository', () => {
 describe('popular products service', () => {
   test('keeps best-seller order and returns the conveyor shape', async () => {
     const findNewestInStock = mock.fn(async () => []);
-    const service = createPopularProductsService({
-      findTopSellingIds: async () => ['b', 'a'],
-      // The database does not guarantee order for an `in` query.
-      findInStockByIds: async () => [product('a', 5), product('b', 12.5)],
-      findNewestInStock,
-    });
+    const service = createCatalogService(
+      popularRepository({
+        findTopSellingIds: async () => ['b', 'a'],
+        // The database does not guarantee order for an `in` query.
+        findInStockByIds: async () => [product('a', 5), product('b', 12.5)],
+        findNewestInStock,
+      }),
+    );
 
     assert.deepEqual(await service.getPopular(2), [
       { id: 'b', name: 'Product b', price: '12.50', imageUrl: PNG_URL },
@@ -110,12 +125,14 @@ describe('popular products service', () => {
     const findNewestInStock = mock.fn(
       async (_exclude: string[], _limit: number) => [product('new')],
     );
-    const service = createPopularProductsService({
-      // 'gone' sold well but went out of stock between queries.
-      findTopSellingIds: async () => ['a', 'gone'],
-      findInStockByIds: async () => [product('a')],
-      findNewestInStock,
-    });
+    const service = createCatalogService(
+      popularRepository({
+        // 'gone' sold well but went out of stock between queries.
+        findTopSellingIds: async () => ['a', 'gone'],
+        findInStockByIds: async () => [product('a')],
+        findNewestInStock,
+      }),
+    );
 
     const ids = (await service.getPopular(3)).map(({ id }) => id);
 
@@ -128,11 +145,13 @@ describe('popular products service', () => {
 
   test('uses only newest products when nothing has been ordered', async () => {
     const findInStockByIds = mock.fn(async () => []);
-    const service = createPopularProductsService({
-      findTopSellingIds: async () => [],
-      findInStockByIds,
-      findNewestInStock: async () => [product('x'), product('y')],
-    });
+    const service = createCatalogService(
+      popularRepository({
+        findTopSellingIds: async () => [],
+        findInStockByIds,
+        findNewestInStock: async () => [product('x'), product('y')],
+      }),
+    );
 
     const ids = (await service.getPopular(6)).map(({ id }) => id);
 
