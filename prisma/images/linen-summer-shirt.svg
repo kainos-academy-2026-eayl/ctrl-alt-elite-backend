@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Light blue linen summer shirt</title>
+  <rect width="640" height="480" fill="#f1f5f8"/>
+  <ellipse cx="320" cy="430" rx="170" ry="16" fill="#dbe4ec"/>
+  <path d="M215 130 270 100 320 135 370 100 425 130 490 200 440 240 405 205V390H235V205L200 240 150 200Z" fill="#a9cbe3"/>
+  <path d="M270 100 320 135 295 160 255 115Z M370 100 320 135 345 160 385 115Z" fill="#8fb7d3"/>
+  <path d="M320 135V390" stroke="#7da7c6" stroke-width="4"/>
+  <g fill="#f4f8fb"><circle cx="320" cy="175" r="5"/><circle cx="320" cy="225" r="5"/><circle cx="320" cy="275" r="5"/><circle cx="320" cy="325" r="5"/><circle cx="320" cy="370" r="5"/></g>
+  <rect x="255" y="215" width="44" height="40" rx="3" fill="none" stroke="#7da7c6" stroke-width="3"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Grey jogger sweatpants</title>
+  <rect width="640" height="480" fill="#eff1f4"/>
+  <ellipse cx="320" cy="440" rx="150" ry="14" fill="#d9dde3"/>
+  <path d="M235 60H405L425 250Q415 400 400 420H335L320 200 305 420H240Q225 400 215 250Z" fill="#9ca3af"/>
+  <rect x="235" y="60" width="170" height="26" fill="#818995"/>
+  <path d="M320 86V200" stroke="#7a828e" stroke-width="3"/>
+  <path d="M310 86Q300 120 306 140M330 86Q340 120 334 140" fill="none" stroke="#f3f4f6" stroke-width="5" stroke-linecap="round"/>
+  <rect x="240" y="404" width="65" height="22" rx="8" fill="#818995"/>
+  <rect x="335" y="404" width="65" height="22" rx="8" fill="#818995"/>
+</svg>

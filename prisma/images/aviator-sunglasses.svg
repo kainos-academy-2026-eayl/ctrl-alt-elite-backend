@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Gold aviator sunglasses</title>
+  <rect width="640" height="480" fill="#f4f0e6"/>
+  <ellipse cx="320" cy="370" rx="230" ry="14" fill="#e4dcc8"/>
+  <path d="M95 180Q150 165 175 190" fill="none" stroke="#c9a227" stroke-width="8" stroke-linecap="round"/>
+  <path d="M545 180Q490 165 465 190" fill="none" stroke="#c9a227" stroke-width="8" stroke-linecap="round"/>
+  <path d="M180 190H290Q295 290 235 305 175 305 160 250 165 200Z" fill="#2f3a46" stroke="#c9a227" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M460 190H350Q345 290 405 305 465 305 480 250 475 200Z" fill="#2f3a46" stroke="#c9a227" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M290 195Q320 170 350 195" fill="none" stroke="#c9a227" stroke-width="8"/>
+  <path d="M290 215H350" stroke="#c9a227" stroke-width="6"/>
+  <path d="M195 215Q230 205 255 225M425 215Q460 205 480 225" fill="none" stroke="#6b7a8c" stroke-width="5" stroke-linecap="round"/>
+</svg>

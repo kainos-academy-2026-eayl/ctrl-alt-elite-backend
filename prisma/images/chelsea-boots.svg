@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Brown leather Chelsea boot</title>
+  <rect width="640" height="480" fill="#f2ece6"/>
+  <ellipse cx="320" cy="410" rx="200" ry="16" fill="#e1d6ca"/>
+  <path d="M215 70H340L345 230Q430 250 490 290 515 310 500 355H215Z" fill="#7b4a2a"/>
+  <path d="M215 355H500Q505 392 470 396H225Q210 392 215 355Z" fill="#2b1d12"/>
+  <path d="M225 190H345V250Q290 255 225 245Z" fill="#5e3820"/>
+  <path d="M232 205Q285 225 340 205V235Q285 255 232 235Z" fill="#2b1d12" opacity="0.6"/>
+  <rect x="215" y="70" width="125" height="14" fill="#5e3820"/>
+  <path d="M260 70V30M295 70V30" stroke="#7b4a2a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M380 270Q430 285 470 310" fill="none" stroke="#a06a42" stroke-width="5" stroke-linecap="round"/>
+</svg>

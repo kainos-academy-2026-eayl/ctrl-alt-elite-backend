@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Natural canvas tote bag</title>
+  <rect width="640" height="480" fill="#eef1ee"/>
+  <ellipse cx="320" cy="440" rx="170" ry="14" fill="#d9dfd9"/>
+  <path d="M240 190V120Q240 50 320 50 400 50 400 120V190" fill="none" stroke="#b79b6c" stroke-width="18" stroke-linecap="round"/>
+  <path d="M190 170H450L470 425H170Z" fill="#e7d9bb"/>
+  <path d="M190 170H450" stroke="#c9b68a" stroke-width="8"/>
+  <path d="M205 190V410M435 190V410" stroke="#d6c59d" stroke-width="3" stroke-dasharray="8 6"/>
+  <path d="M172 410H468" stroke="#c9b68a" stroke-width="5"/>
+</svg>

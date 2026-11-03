@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Burgundy silk tie</title>
+  <rect width="640" height="480" fill="#f3edee"/>
+  <ellipse cx="320" cy="440" rx="120" ry="12" fill="#e4d8da"/>
+  <path d="M290 40H350L362 100H278Z" fill="#8b1e3f"/>
+  <path d="M278 100H362L400 410 320 440 240 410Z" fill="#a62650"/>
+  <path d="M320 100V430" stroke="#8b1e3f" stroke-width="4"/>
+  <g stroke="#cf7a96" stroke-width="5" stroke-linecap="round"><path d="M290 190l60 -30M285 240l70 -34M278 290l84 -40M270 340l100 -48M262 390l116 -56"/></g>
+</svg>
