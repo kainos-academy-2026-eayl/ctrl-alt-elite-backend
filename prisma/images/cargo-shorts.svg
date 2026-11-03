@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Khaki cargo shorts</title>
+  <rect width="640" height="480" fill="#f3f1ea"/>
+  <ellipse cx="320" cy="400" rx="170" ry="14" fill="#e0dccd"/>
+  <path d="M225 100H415L440 360H342L320 220 298 360H200Z" fill="#a8a07a"/>
+  <rect x="225" y="100" width="190" height="24" fill="#8f8760"/>
+  <path d="M320 124V220" stroke="#7d7553" stroke-width="3"/>
+  <rect x="212" y="215" width="58" height="62" rx="4" fill="#9a926b" stroke="#7d7553" stroke-width="3"/>
+  <rect x="370" y="215" width="58" height="62" rx="4" fill="#9a926b" stroke="#7d7553" stroke-width="3"/>
+  <path d="M212 232H270M370 232H428" stroke="#7d7553" stroke-width="3"/>
+</svg>

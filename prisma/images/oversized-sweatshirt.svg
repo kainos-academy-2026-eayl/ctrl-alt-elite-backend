@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Pink oversized sweatshirt</title>
+  <rect width="640" height="480" fill="#f7eef1"/>
+  <ellipse cx="320" cy="440" rx="190" ry="14" fill="#ead6dc"/>
+  <path d="M245 80Q320 125 395 80L465 110 520 350 450 365 425 230V405H215V230L190 365 120 350 175 110Z" fill="#e58aa5"/>
+  <path d="M245 80Q320 125 395 80" fill="none" stroke="#c96d89" stroke-width="14"/>
+  <rect x="215" y="388" width="210" height="22" fill="#c96d89"/>
+  <path d="M121 348 190 362M519 348 450 362" stroke="#c96d89" stroke-width="22" stroke-linecap="round"/>
+  <path d="M250 150Q320 200 390 150" fill="none" stroke="#d9758f" stroke-width="4"/>
+</svg>

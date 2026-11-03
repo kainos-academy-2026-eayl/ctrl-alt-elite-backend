@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Red wool beanie with pom-pom</title>
+  <rect width="640" height="480" fill="#f6eeee"/>
+  <ellipse cx="320" cy="405" rx="150" ry="14" fill="#e6d4d4"/>
+  <path d="M190 330Q180 130 320 120 460 130 450 330Z" fill="#c0392b"/>
+  <rect x="180" y="310" width="280" height="70" rx="22" fill="#a52f23"/>
+  <g stroke="#7e2018" stroke-width="4"><path d="M215 318V372M250 318V372M285 318V372M320 318V372M355 318V372M390 318V372M425 318V372"/></g>
+  <circle cx="320" cy="108" r="38" fill="#f3e9e7"/>
+  <path d="M285 108h70M320 73v70M296 84l48 48M344 84l-48 48" stroke="#d8c9c6" stroke-width="3"/>
+</svg>

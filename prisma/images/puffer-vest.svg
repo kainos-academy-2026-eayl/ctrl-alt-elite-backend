@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Olive quilted puffer vest</title>
+  <rect width="640" height="480" fill="#eff2ec"/>
+  <ellipse cx="320" cy="440" rx="150" ry="14" fill="#dae0d2"/>
+  <path d="M250 70 290 55H350L390 70 420 130 400 175V410H240V175L220 130Z" fill="#6b7d4b"/>
+  <path d="M290 55 320 90 350 55" fill="none" stroke="#51603a" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M240 150H400M240 210H400M240 270H400M240 330H400M240 385H400" stroke="#51603a" stroke-width="6"/>
+  <path d="M320 90V410" stroke="#3f4c2c" stroke-width="5"/>
+  <rect x="316" y="105" width="8" height="24" rx="2" fill="#e8c06a"/>
+</svg>

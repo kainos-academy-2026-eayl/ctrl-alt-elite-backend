@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Yellow hooded waterproof parka</title>
+  <rect width="640" height="480" fill="#eef2f6"/>
+  <ellipse cx="320" cy="440" rx="170" ry="14" fill="#d6dde6"/>
+  <path d="M240 75 280 50Q320 20 360 50L400 75 460 115 495 400H435L425 215V420H215V215L205 400H145L180 115Z" fill="#f2b705"/>
+  <path d="M265 70Q320 140 375 70Q360 20 320 20 280 20 265 70Z" fill="#d99e00"/>
+  <path d="M290 78Q320 110 350 78" fill="none" stroke="#a97800" stroke-width="5"/>
+  <path d="M320 112V420" stroke="#a97800" stroke-width="5"/>
+  <rect x="316" y="125" width="8" height="26" rx="2" fill="#4b5563"/>
+  <path d="M232 330H304M336 330H408" stroke="#a97800" stroke-width="5" stroke-linecap="round"/>
+  <path d="M215 410H425" stroke="#a97800" stroke-width="5"/>
+</svg>

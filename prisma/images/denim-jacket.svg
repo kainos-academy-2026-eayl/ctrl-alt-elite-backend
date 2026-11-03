@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Blue denim jacket</title>
+  <rect width="640" height="480" fill="#eef3f8"/>
+  <ellipse cx="320" cy="438" rx="170" ry="14" fill="#d5dfea"/>
+  <path d="M232 85 280 70 320 100 360 70 408 85 470 120 500 380H440L428 200V400H212V200L200 380H140L170 120Z" fill="#4a74a8"/>
+  <path d="M280 70 320 135 360 70 340 62 320 90 300 62Z" fill="#3b6091"/>
+  <path d="M320 100V400" stroke="#2f4f7a" stroke-width="4"/>
+  <g fill="#e5c76b"><circle cx="320" cy="170" r="6"/><circle cx="320" cy="230" r="6"/><circle cx="320" cy="290" r="6"/><circle cx="320" cy="350" r="6"/></g>
+  <rect x="236" y="190" width="60" height="50" rx="4" fill="none" stroke="#2f4f7a" stroke-width="4"/>
+  <rect x="344" y="190" width="60" height="50" rx="4" fill="none" stroke="#2f4f7a" stroke-width="4"/>
+  <path d="M212 380H428" stroke="#2f4f7a" stroke-width="5"/>
+</svg>

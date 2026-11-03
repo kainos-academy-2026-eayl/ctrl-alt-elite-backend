@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Green baseball cap</title>
+  <rect width="640" height="480" fill="#eef4ee"/>
+  <ellipse cx="320" cy="400" rx="210" ry="16" fill="#d6e3d6"/>
+  <path d="M170 300Q165 150 300 130 440 125 460 300Z" fill="#2f7d4f"/>
+  <path d="M300 130V300M300 130Q230 170 220 300M300 130Q370 170 380 300" fill="none" stroke="#256640" stroke-width="4"/>
+  <circle cx="300" cy="128" r="9" fill="#256640"/>
+  <path d="M165 300H460Q560 300 575 345 545 370 460 350H165Z" fill="#256640"/>
+  <path d="M165 296H460" stroke="#1d5233" stroke-width="6"/>
+</svg>

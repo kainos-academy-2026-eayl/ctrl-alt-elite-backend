@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <title>Kainos reusable water bottle</title>
+  <rect width="640" height="480" fill="#e9f3f6"/>
+  <ellipse cx="320" cy="440" rx="110" ry="12" fill="#cfe2e8"/>
+  <rect x="285" y="40" width="70" height="40" rx="10" fill="#1f2937"/>
+  <path d="M290 80H350V120Q390 140 390 190V420Q390 435 375 435H265Q250 435 250 420V190Q250 140 290 120Z" fill="#1ba3b8"/>
+  <path d="M272 190V410" stroke="#6ad0e0" stroke-width="10" stroke-linecap="round"/>
+  <rect x="268" y="230" width="104" height="110" rx="10" fill="#ffffff"/>
+  <text x="320" y="305" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="700" fill="#1ba3b8">K</text>
+</svg>
