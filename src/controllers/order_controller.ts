@@ -15,10 +15,7 @@ export function createOrderController(service: OrderService) {
         return;
       }
 
-      const order = await service.create(
-        customerId,
-        req.body,
-      );
+      const order = await service.create(customerId, req.body);
 
       res.status(201).json({ order });
     },

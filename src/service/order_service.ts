@@ -1,5 +1,5 @@
 import { OrderValidationError } from '../errors/order_errors';
-import { orderSchema, type Order } from '../models/order_model';
+import { type Order, orderSchema } from '../models/order_model';
 import type { OrderRepository } from '../repo/order_repository';
 
 export function createOrderService(repository: OrderRepository) {

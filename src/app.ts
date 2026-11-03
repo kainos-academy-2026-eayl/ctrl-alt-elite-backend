@@ -14,6 +14,7 @@ import { BasketRepository } from './repo/basket_repository';
 import { createAdminProductRouter } from './routes/admin_product_routes';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
+import { createOrderRouter } from './routes/order_routes';
 import {
   createAdminSupportTicketRouter,
   createSupportTicketRouter,
@@ -210,7 +211,7 @@ export function createApp(
     '/api/baskets',
     createBasketRouter(new BasketController(services.basketService)),
   );
-
+  app.use('/api', createOrderRouter(database, requireTicketUser));
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);
 
