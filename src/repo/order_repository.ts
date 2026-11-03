@@ -44,7 +44,7 @@ export function createOrderRepository(database: OrderDatabase) {
           totalMinorUnits += item.quantity * product.price;
 
           const unitPriceMinorUnits = Math.round(product.price * 100);
-          const lineTotalMinorUnits = unitPriceMinorUnits * item.quantity;
+          const lineTotalMinorUnits = unitPriceMinorUnits
 
           totalMinorUnits += lineTotalMinorUnits;
 
