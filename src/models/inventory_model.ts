@@ -28,7 +28,7 @@ const wholeNumber = (label: string) =>
   z
     .number({ error: `${label} must be a number.` })
     .int(`${label} must be a whole number.`)
-    .min(0, `${label} must be between 0 and 1,000,000.`)
+    .min(0, `${label} cannot be negative.`)
     .max(maxQuantity, `${label} must be between 0 and 1,000,000.`);
 
 export const stockUpdateSchema = z.object(

@@ -186,6 +186,26 @@ test('invalid stock updates are rejected and nothing is saved', async () => {
   }
   assert.equal(rows[0]?.stock, 50);
 
+  const negative = await request(app)
+    .put('/api/admin/inventory/p-1/stock')
+    .auth(token, { type: 'bearer' })
+    .send({ stock: -1, lowStockThreshold: -5 });
+  assert.deepEqual(negative.body.errors, [
+    { field: 'stock', message: 'Stock cannot be negative.' },
+    {
+      field: 'lowStockThreshold',
+      message: 'Low stock threshold cannot be negative.',
+    },
+  ]);
+
+  const notANumber = await request(app)
+    .put('/api/admin/inventory/p-1/stock')
+    .auth(token, { type: 'bearer' })
+    .send({ stock: '-' });
+  assert.deepEqual(notANumber.body.errors, [
+    { field: 'stock', message: 'Stock must be a number.' },
+  ]);
+
   const flag = await request(app)
     .put('/api/admin/inventory/p-1/out-of-stock')
     .auth(token, { type: 'bearer' })
