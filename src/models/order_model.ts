@@ -1,14 +1,40 @@
-import type { Prisma } from '../generated/prisma/client';
+import { z } from 'zod';
+import type { Prisma, PrismaClient } from '../generated/prisma/client';
 
-export type Order = Prisma.orderGetPayload<{
-  include: {
-    customer: true;
-    id: true;
+
+
+const orderItemSchema = z.strictObject({
+  productId: z.string().uuid(),
+  quantity: z.number().int().positive().safe(),
+});
+
+export const orderSchema = z
+  .strictObject({
+    items: z.array(orderItemSchema).nonempty(),
+  })
+  .refine(
+    (data) => {
+      const productIds = data.items.map((item) => item.productId);
+      return new Set(productIds).size === productIds.length;
+    },
+    { message: 'Each product may appear only once.' },
+  );
+
+  export const orderSelect = {
+    id: true,
+    customer: true,
     products: {
-      include: {
-        product: true;
-      };
-    };
-  };
+      select: {
+        product_id: true,
+        amount: true,
+      },
+    },
+  } as const satisfies Prisma.orderSelect;
+
+  export type CreateOrderInput = z.infer<typeof orderSchema>;
+  
+  export type Order = Prisma.orderGetPayload<{
+  select: typeof orderSelect;
 }>;
 
+export type OrderDatabase = Pick<PrismaClient, '$transaction'>;
