@@ -140,6 +140,20 @@ describe('catalog service search', () => {
     assert.equal(hair?.isInStock, false);
   });
 
+  test('reports explicitly out-of-stock products with positive stock as unavailable', async () => {
+    const outOfStockService = createCatalogService({
+      findAll: async () => [
+        product('out-of-stock', 'Out of Stock', 'Test', {
+          stock: 5,
+          outOfStock: true,
+        }),
+      ],
+      findById: async () => null,
+    });
+    const [item] = (await outOfStockService.search('out of stock')).products;
+    assert.equal(item?.isInStock, false);
+  });
+
   test('does not load the catalogue for an empty search', async () => {
     let loads = 0;
     const counting = createCatalogService({
