@@ -15,6 +15,11 @@ const profileSelect = {
   username: true,
   firstName: true,
   lastName: true,
+  email: true,
+  addressLine1: true,
+  addressLine2: true,
+  postcode: true,
+  phoneNumber: true,
   profilePhoto: true,
 } satisfies Prisma.UserSelect;
 
@@ -26,6 +31,11 @@ function publicProfile(user: ProfileRecord) {
     username: user.username,
     firstName: user.firstName,
     lastName: user.lastName,
+    email: user.email,
+    addressLine1: user.addressLine1,
+    addressLine2: user.addressLine2,
+    postcode: user.postcode,
+    phoneNumber: user.phoneNumber,
     hasPhoto: user.profilePhoto !== null,
   };
 }
@@ -119,6 +129,18 @@ export function createProfileService(database: PrismaClient) {
           : {}),
         ...(profile.lastName !== undefined
           ? { lastName: profile.lastName }
+          : {}),
+        ...(profile.addressLine1 !== undefined
+          ? { addressLine1: profile.addressLine1 }
+          : {}),
+        ...(profile.addressLine2 !== undefined
+          ? { addressLine2: profile.addressLine2 }
+          : {}),
+        ...(profile.postcode !== undefined
+          ? { postcode: profile.postcode }
+          : {}),
+        ...(profile.phoneNumber !== undefined
+          ? { phoneNumber: profile.phoneNumber }
           : {}),
       });
     },

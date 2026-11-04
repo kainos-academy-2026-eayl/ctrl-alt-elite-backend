@@ -177,6 +177,32 @@ query parameters, `404` for an unknown customer ID, `503` (logged) when the
 database is unreachable, and `500` (logged) for other failures. `id` is the
 existing UUID and `registrationDate` is the UTC date of the user's `createdAt`.
 
+## Customer profiles
+
+The authenticated `GET /api/profile` returns `id`, `username`, `firstName`,
+`lastName`, `email`, `addressLine1`, `addressLine2`, `postcode`, `phoneNumber` and
+`hasPhoto`. Identity comes only from the verified backend login token.
+
+`PATCH /api/profile` accepts any subset of the editable fields. Names are trimmed,
+nonempty and at most 100 characters. Optional username (30 characters), address
+lines (200 each), postcode (20), and phone number (30) accept null or blank strings
+to clear them; omitted values remain unchanged. Phone numbers are strings and
+allow digits, spaces, a leading plus, brackets, dots and hyphens.
+Usernames are unique and case-sensitive, for display only. Login remains email
+and password. Email is returned read-only: attempts to update it through this API
+are rejected, as are unknown fields such as roles, passwords and user IDs.
+
+`PUT /api/profile/photo` accepts raw JPG, PNG or WebP bytes up to 20 MiB and
+16 megapixels. The server decodes the image, corrects orientation, strips metadata
+and stores a WebP thumbnail no larger than 512 by 512. `GET /api/profile/photo`
+returns the current user's picture (`404` if absent); `DELETE /api/profile/photo`
+removes it. All profile responses use `Cache-Control: no-store`.
+
+Validation errors return `400`, username conflicts `409`, oversized uploads `413`,
+unsupported upload content types `415`, and rejected authentication `401`.
+Run `npm run db:deploy` and `npm run db:generate` for the additional nullable contact
+columns. Existing accounts are preserved; their unset contact fields start null.
+
 ## Support Tickets
 
 Apply the migrations and regenerate the Prisma client before running the API:

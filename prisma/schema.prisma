@@ -37,6 +37,10 @@ model User {
   passwordHash String
   username     String?  @unique @db.VarChar(30)
   profilePhoto Bytes?
+  addressLine1 String?  @db.VarChar(200)
+  addressLine2 String?  @db.VarChar(200)
+  postcode     String?  @db.VarChar(20)
+  phoneNumber  String?  @db.VarChar(30)
   role         Role     @default(CUSTOMER)
   createdAt    DateTime @default(now())
   orders       order[]

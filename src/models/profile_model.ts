@@ -10,6 +10,16 @@ const name = z
   .min(1, 'Name cannot be empty.')
   .max(100, 'Names must be 100 characters or fewer.');
 
+function optionalText(max: number, label: string) {
+  return z
+    .string()
+    .trim()
+    .max(max, `${label} must be ${max} characters or fewer.`)
+    .nullable()
+    .transform((value) => value || null)
+    .optional();
+}
+
 const profileUpdateSchema = z
   .object({
     username: z
@@ -21,6 +31,16 @@ const profileUpdateSchema = z
       .optional(),
     firstName: name.optional(),
     lastName: name.optional(),
+    addressLine1: optionalText(200, 'Address line 1'),
+    addressLine2: optionalText(200, 'Address line 2'),
+    postcode: optionalText(20, 'Postcode'),
+    phoneNumber: optionalText(30, 'Phone number').refine(
+      (value) => !value || (/^\+?[\d ().-]+$/.test(value) && /\d/.test(value)),
+      {
+        message:
+          'Enter a valid phone number using digits, spaces, +, brackets, dots or hyphens.',
+      },
+    ),
   })
   .strict()
   .refine((value) => Object.keys(value).length > 0, {
