@@ -11,6 +11,7 @@ import {
   normaliseSearchTerm,
 } from '../src/models/product_search_model';
 import { createCatalogService } from '../src/service/catalog_service';
+import { noPopular } from './support/popularStubs';
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p94AAAAASUVORK5CYII=',
@@ -111,6 +112,7 @@ describe('findProducts', () => {
 
 describe('catalog service search', () => {
   const service = createCatalogService({
+    ...noPopular,
     findAll: async () => CATALOGUE,
     findById: async () => null,
   });
@@ -143,6 +145,7 @@ describe('catalog service search', () => {
   test('does not load the catalogue for an empty search', async () => {
     let loads = 0;
     const counting = createCatalogService({
+      ...noPopular,
       findAll: async () => {
         loads += 1;
         return CATALOGUE;

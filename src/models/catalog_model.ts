@@ -1,4 +1,5 @@
 import type { Prisma } from '../generated/prisma/client';
+import type { PopularProductsDatabase } from './popular_products_model';
 
 export const productSelect = {
   id: true,
@@ -26,4 +27,4 @@ export type CatalogDatabase = {
       select: typeof productSelect;
     }): PromiseLike<CatalogProduct | null>;
   };
-};
+} & PopularProductsDatabase;

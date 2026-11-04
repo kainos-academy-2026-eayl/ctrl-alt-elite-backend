@@ -3,6 +3,7 @@ import { mock, test } from 'node:test';
 import type { CatalogProduct } from '../src/models/catalog_model';
 import { createCatalogRepository } from '../src/repo/catalog_repository';
 import { createCatalogService } from '../src/service/catalog_service';
+import { noOrders, noPopular } from './support/popularStubs';
 
 const product: CatalogProduct = {
   id: 'product-123',
@@ -29,6 +30,7 @@ const expectedSelect = {
 test('repository selects catalogue fields and orders products by name', async () => {
   const findMany = mock.fn(async () => [product]);
   const repository = createCatalogRepository({
+    order_products: noOrders,
     product: { findMany, findUnique: async () => null },
   });
 
@@ -42,6 +44,7 @@ test('repository selects catalogue fields and orders products by name', async ()
 test('repository selects a product using its ID', async () => {
   const findUnique = mock.fn(async () => product);
   const repository = createCatalogRepository({
+    order_products: noOrders,
     product: { findMany: async () => [], findUnique },
   });
 
@@ -54,6 +57,7 @@ test('repository selects a product using its ID', async () => {
 
 test('repository preserves empty lists and missing products', async () => {
   const repository = createCatalogRepository({
+    order_products: noOrders,
     product: {
       findMany: async () => [],
       findUnique: async () => null,
@@ -70,6 +74,7 @@ test('repository propagates database failures from both queries', async () => {
     throw failure;
   };
   const repository = createCatalogRepository({
+    order_products: noOrders,
     product: { findMany: fail, findUnique: fail },
   });
 
@@ -90,6 +95,7 @@ for (const [mimeType, image] of [
     const storedProduct = { ...product, image };
     const findById = mock.fn(async (_id: string) => storedProduct);
     const service = createCatalogService({
+      ...noPopular,
       findAll: async () => [storedProduct],
       findById,
     });
@@ -107,6 +113,7 @@ for (const [mimeType, image] of [
 
 test('service preserves empty lists and missing products', async () => {
   const service = createCatalogService({
+    ...noPopular,
     findAll: async () => [],
     findById: async () => null,
   });
@@ -118,6 +125,7 @@ test('service preserves empty lists and missing products', async () => {
 test('service rejects unsupported images for both operations', async () => {
   const invalidProduct = { ...product, image: Buffer.from('not an image') };
   const service = createCatalogService({
+    ...noPopular,
     findAll: async () => [invalidProduct],
     findById: async () => invalidProduct,
   });
@@ -137,6 +145,7 @@ for (const [name, image] of [
   test(`service rejects ${name} for lists and individual products`, async () => {
     const invalidProduct = { ...product, image };
     const service = createCatalogService({
+      ...noPopular,
       findAll: async () => [invalidProduct],
       findById: async () => invalidProduct,
     });
@@ -152,7 +161,11 @@ test('service propagates repository failures from both operations', async () => 
   const fail = async () => {
     throw failure;
   };
-  const service = createCatalogService({ findAll: fail, findById: fail });
+  const service = createCatalogService({
+    ...noPopular,
+    findAll: fail,
+    findById: fail,
+  });
 
   await assert.rejects(service.getAll(), (error) => error === failure);
   await assert.rejects(
