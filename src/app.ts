@@ -58,8 +58,13 @@ export function createApp(
   jwtSecret: string,
   services: AppServices = createServices(database),
 ): Express {
-  const { issueToken, requireAdmin, requireStaff, requireTicketUser } =
-    createAuthorization(database, jwtSecret);
+  const {
+    issueToken,
+    requireAdmin,
+    requireStaff,
+    requireTicketUser,
+    requireOrderCustomer,
+  } = createAuthorization(database, jwtSecret);
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
 
@@ -211,7 +216,7 @@ export function createApp(
     '/api/baskets',
     createBasketRouter(new BasketController(services.basketService)),
   );
-  app.use('/api', createOrderRouter(database, requireTicketUser));
+  app.use('/api', createOrderRouter(database, requireOrderCustomer));
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);
 
