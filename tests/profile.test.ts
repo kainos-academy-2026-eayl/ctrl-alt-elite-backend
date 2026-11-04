@@ -25,6 +25,10 @@ function fixture() {
     profilePhoto: null as Uint8Array | null,
     passwordHash: 'never-return-this',
     email: 'private@example.com',
+    addressLine1: null,
+    addressLine2: null,
+    postcode: null,
+    phoneNumber: null,
   };
   const state = { exists: true, failure: null as Error | null };
   const findUnique = mock.fn(async (query: { where: { id: string } }) => {
@@ -110,6 +114,11 @@ test('customers can load only their own public profile without secrets or pictur
     username: 'original',
     firstName: 'Test',
     lastName: 'Customer',
+    email: 'private@example.com',
+    addressLine1: null,
+    addressLine2: null,
+    postcode: null,
+    phoneNumber: null,
     hasPhoto: false,
   });
   assert.deepEqual(findUnique.mock.calls.at(-1)?.arguments[0].where, {
