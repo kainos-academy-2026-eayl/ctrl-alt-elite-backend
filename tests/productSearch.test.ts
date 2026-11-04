@@ -32,6 +32,7 @@ function product(
     price: 10,
     stock: 5,
     image: Uint8Array.from(PNG),
+    createdAt: new Date('2026-10-22T10:00:00Z'),
     ...overrides,
   };
 }
@@ -45,6 +46,25 @@ const CATALOGUE: CatalogProduct[] = [
   product('crown', 'Princess Dylan Crown', 'Home'),
   product('jeans', 'Swaggy Jeans', 'Jeans', { price: 24.99 }),
 ];
+
+const NO_FILTERS = {
+  stock: [],
+  categories: [],
+  minPrice: null,
+  maxPrice: null,
+  sort: 'recommended',
+};
+const NO_MATCHES = {
+  products: [],
+  isClosestMatch: false,
+  facets: {
+    total: 0,
+    categories: [],
+    stock: { in: 0, out: 0 },
+    priceRange: null,
+  },
+  appliedFilters: NO_FILTERS,
+};
 
 const namesFor = (term: string) =>
   findProducts(CATALOGUE, term).products.map(({ name }) => name);
@@ -127,10 +147,18 @@ describe('catalog service search', () => {
           imageUrl: `data:image/png;base64,${PNG.toString('base64')}`,
           price: '8.99',
           keywords: ['Hoodie'],
+          category: 'Hoodie',
           isInStock: true,
         },
       ],
       isClosestMatch: false,
+      facets: {
+        total: 1,
+        categories: [{ name: 'Hoodie', count: 1 }],
+        stock: { in: 1, out: 0 },
+        priceRange: { min: '8.99', max: '8.99' },
+      },
+      appliedFilters: NO_FILTERS,
     });
   });
 
@@ -151,10 +179,7 @@ describe('catalog service search', () => {
       },
       findById: async () => null,
     });
-    assert.deepEqual(await counting.search(''), {
-      products: [],
-      isClosestMatch: false,
-    });
+    assert.deepEqual(await counting.search(''), NO_MATCHES);
     assert.equal(loads, 0);
   });
 });
@@ -207,11 +232,7 @@ describe('GET /api/products/search', () => {
     await withServer(async (baseUrl) => {
       const res = await fetch(`${baseUrl}/api/products/search`);
       assert.equal(res.status, 200);
-      assert.deepEqual(await res.json(), {
-        searchTerm: '',
-        products: [],
-        isClosestMatch: false,
-      });
+      assert.deepEqual(await res.json(), { searchTerm: '', ...NO_MATCHES });
     });
   });
 });

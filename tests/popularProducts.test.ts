@@ -35,7 +35,12 @@ function popularRepository(
     'findTopSellingIds' | 'findInStockByIds' | 'findNewestInStock'
   >,
 ): CatalogRepository {
-  return { findAll: async () => [], findById: async () => null, ...methods };
+  return {
+    findAll: async () => [],
+    findById: async () => null,
+    findUnitsSold: async () => new Map(),
+    ...methods,
+  };
 }
 
 describe('normalisePopularLimit', () => {
@@ -62,7 +67,7 @@ describe('popular products repository', () => {
       { product_id: 'a' },
     ]);
     const repository = createCatalogRepository({
-      order_products: { groupBy },
+      order_products: { groupBy, findMany: async () => [] },
       product: { findMany: async () => [], findUnique: async () => null },
     });
 
@@ -81,7 +86,7 @@ describe('popular products repository', () => {
   test('loads in-stock products by ID and newest in-stock products', async () => {
     const findMany = mock.fn(async () => []);
     const repository = createCatalogRepository({
-      order_products: { groupBy: async () => [] },
+      order_products: { groupBy: async () => [], findMany: async () => [] },
       product: { findMany, findUnique: async () => null },
     });
 

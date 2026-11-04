@@ -1,5 +1,15 @@
 import type { CatalogProduct } from '../models/catalog_model';
 import type { PopularProduct } from '../models/popular_products_model';
+import {
+  type AppliedFiltersDto,
+  buildFacets,
+  DEFAULT_FILTERS,
+  filterProducts,
+  type ProductFacetsDto,
+  type ProductFilters,
+  sortProducts,
+  toAppliedFilters,
+} from '../models/product_filter_model';
 import { detectImageType } from '../models/product_image';
 import { findProducts } from '../models/product_search_model';
 import type { CatalogRepository } from '../repo/catalog_repository';
@@ -13,10 +23,17 @@ export interface ProductSearchItemDto {
   /** Price in pounds as a 2 decimal place string, e.g. "24.99". */
   price: string;
   keywords: string[];
+  category: string;
   isInStock: boolean;
 }
 
-export interface ProductSearchResultDto {
+/** Filter options for the matched products, and the filters that were applied. */
+export interface FilteredListDto {
+  facets: ProductFacetsDto;
+  appliedFilters: AppliedFiltersDto;
+}
+
+export interface ProductSearchResultDto extends FilteredListDto {
   products: ProductSearchItemDto[];
   isClosestMatch: boolean;
 }
@@ -52,6 +69,7 @@ function toSearchItem(product: CatalogProduct): ProductSearchItemDto {
     imageUrl: toImageDataUrl(product.image),
     price: product.price.toFixed(2),
     keywords: [product.category],
+    category: product.category,
     isInStock: product.stock > 0,
   };
 }
@@ -66,10 +84,31 @@ function toPopularProduct(product: PopularProduct): PopularProductDto {
 }
 
 export function createCatalogService(repository: CatalogRepository) {
+  /** Filters and sorts products that are already in their recommended order. */
+  async function applyFilters(
+    products: CatalogProduct[],
+    filters: ProductFilters,
+  ): Promise<{ products: CatalogProduct[] } & FilteredListDto> {
+    const unitsSold =
+      filters.sort === 'most-bought'
+        ? await repository.findUnitsSold()
+        : undefined;
+    return {
+      products: sortProducts(
+        filterProducts(products, filters),
+        filters.sort,
+        unitsSold,
+      ),
+      facets: buildFacets(products, filters),
+      appliedFilters: toAppliedFilters(filters),
+    };
+  }
+
   return {
-    async getAll() {
-      const products = await repository.findAll();
-      return products.map(serializeProduct);
+    /** Every product, in name order unless another sort is asked for. */
+    async getAll(filters: ProductFilters = DEFAULT_FILTERS) {
+      const result = await applyFilters(await repository.findAll(), filters);
+      return { ...result, products: result.products.map(serializeProduct) };
     },
     async getById(id: string) {
       const product = await repository.findById(id);
@@ -80,14 +119,19 @@ export function createCatalogService(repository: CatalogRepository) {
      * matched in memory. This suits the current small catalogue; a large one
      * would need database-side search (e.g. pg_trgm) instead.
      */
-    async search(searchTerm: string): Promise<ProductSearchResultDto> {
-      if (searchTerm === '') {
-        return { products: [], isClosestMatch: false };
-      }
-      const result = findProducts(await repository.findAll(), searchTerm);
+    async search(
+      searchTerm: string,
+      filters: ProductFilters = DEFAULT_FILTERS,
+    ): Promise<ProductSearchResultDto> {
+      const matches =
+        searchTerm === ''
+          ? { products: [], isClosestMatch: false }
+          : findProducts(await repository.findAll(), searchTerm);
+      const result = await applyFilters(matches.products, filters);
       return {
+        ...result,
         products: result.products.map(toSearchItem),
-        isClosestMatch: result.isClosestMatch,
+        isClosestMatch: matches.isClosestMatch,
       };
     },
     /**

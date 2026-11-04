@@ -13,6 +13,7 @@ const product: CatalogProduct = {
   price: 24.99,
   stock: 8,
   image: Buffer.from('89504e470d0a1a0a', 'hex'),
+  createdAt: new Date('2026-10-22T10:00:00Z'),
 };
 
 const expectedSelect = {
@@ -23,6 +24,7 @@ const expectedSelect = {
   price: true,
   stock: true,
   image: true,
+  createdAt: true,
 };
 
 test('repository selects catalogue fields and orders products by name', async () => {
@@ -102,7 +104,7 @@ for (const [mimeType, image] of [
       image: `data:${mimeType};base64,${Buffer.from(image).toString('base64')}`,
     };
 
-    assert.deepEqual(await service.getAll(), [expected]);
+    assert.deepEqual((await service.getAll()).products, [expected]);
     assert.deepEqual(await service.getById(product.id), expected);
     assert.deepEqual(findById.mock.calls[0]?.arguments, [product.id]);
     assert.equal(storedProduct.image, image);
@@ -116,7 +118,7 @@ test('service preserves empty lists and missing products', async () => {
     findById: async () => null,
   });
 
-  assert.deepEqual(await service.getAll(), []);
+  assert.deepEqual((await service.getAll()).products, []);
   assert.equal(await service.getById('missing'), null);
 });
 

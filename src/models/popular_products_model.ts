@@ -29,6 +29,10 @@ export type PopularProductsDatabase = {
       orderBy: [{ _sum: { amount: 'desc' } }, { product_id: 'asc' }];
       take: number;
     }): PromiseLike<{ product_id: string }[]>;
+    /** Every order line's product and quantity, to total units sold. */
+    findMany(args: {
+      select: { product_id: true; amount: true };
+    }): PromiseLike<{ product_id: string; amount: number }[]>;
   };
   product: {
     findMany(args: {

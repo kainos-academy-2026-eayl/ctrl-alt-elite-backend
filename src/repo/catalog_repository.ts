@@ -20,6 +20,20 @@ export function createCatalogRepository(database: CatalogDatabase) {
         select: productSelect,
       });
     },
+    /** Units ordered of each product, for sorting by "most bought". */
+    async findUnitsSold(): Promise<Map<string, number>> {
+      const lines = await database.order_products.findMany({
+        select: { product_id: true, amount: true },
+      });
+      const unitsSold = new Map<string, number>();
+      for (const line of lines) {
+        unitsSold.set(
+          line.product_id,
+          (unitsSold.get(line.product_id) ?? 0) + line.amount,
+        );
+      }
+      return unitsSold;
+    },
     /** IDs of in-stock products with the most units ordered, best seller first. */
     async findTopSellingIds(limit: number): Promise<string[]> {
       const sales = await database.order_products.groupBy({

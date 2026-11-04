@@ -1,17 +1,21 @@
 import type { Request, Response } from 'express';
 import { normalisePopularLimit } from '../models/popular_products_model';
+import { parseProductFilters } from '../models/product_filter_model';
 import { normaliseSearchTerm } from '../models/product_search_model';
 import type { CatalogService } from '../service/catalog_service';
 
 export function createCatalogController(service: CatalogService) {
   return {
-    getAll: async (_req: Request, res: Response) => {
-      const products = await service.getAll();
-      res.status(200).json({ products });
+    getAll: async (req: Request, res: Response) => {
+      const result = await service.getAll(parseProductFilters(req.query));
+      res.status(200).json(result);
     },
     search: async (req: Request, res: Response) => {
       const searchTerm = normaliseSearchTerm(req.query.q);
-      const result = await service.search(searchTerm);
+      const result = await service.search(
+        searchTerm,
+        parseProductFilters(req.query),
+      );
       res.status(200).json({ searchTerm, ...result });
     },
     getPopular: async (req: Request, res: Response) => {
