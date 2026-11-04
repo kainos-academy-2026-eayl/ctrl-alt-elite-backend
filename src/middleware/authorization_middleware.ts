@@ -98,6 +98,16 @@ export function createAuthorization(database: PrismaClient, secret: string) {
       'Staff',
       'Administrator or customer service',
     ),
+    requireInventory: requireRole(
+      ['ADMIN', 'INVENTORY_MANAGEMENT'],
+      'Inventory',
+      'Administrator or inventory management',
+    ),
+    requireAnyStaff: requireRole(
+      ['ADMIN', 'CUSTOMER_SERVICE', 'INVENTORY_MANAGEMENT'],
+      'Staff',
+      'Staff',
+    ),
     requireTicketUser: requireRole(
       ['CUSTOMER', 'ADMIN'],
       'Support ticket',

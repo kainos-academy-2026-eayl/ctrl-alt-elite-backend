@@ -45,12 +45,14 @@ export class BasketRepository {
     return basket !== null;
   }
 
-  async findProductName(productId: string): Promise<string | null> {
+  async findProduct(
+    productId: string,
+  ): Promise<{ name: string; outOfStock: boolean } | null> {
     const product = await this.database.product.findUnique({
       where: { id: productId },
-      select: { name: true },
+      select: { name: true, outOfStock: true },
     });
-    return product?.name ?? null;
+    return product ?? null;
   }
 
   async findLineQuantity(

@@ -16,6 +16,10 @@ export const BASKET_NOT_FOUND_MESSAGE =
 export const PRODUCT_NOT_FOUND_MESSAGE = 'That product is not available.';
 export const ITEM_NOT_FOUND_MESSAGE = 'That item is not in your basket.';
 
+export function outOfStockMessage(productName: string): string {
+  return `${productName} is out of stock.`;
+}
+
 export interface AddItemResult {
   basket: Basket;
   isNewLine: boolean;
@@ -43,12 +47,16 @@ export class BasketService {
   /** Adds one of a product, or one more if it is already in the basket. */
   async addItem(basketId: string, productId: string): Promise<AddItemResult> {
     await this.ensureBasketExists(basketId);
-    const productName = await this.basketRepository.findProductName(productId);
-    if (productName === null) {
+    const product = await this.basketRepository.findProduct(productId);
+    if (product === null) {
       throw new ValidationError([
         { field: 'productId', message: PRODUCT_NOT_FOUND_MESSAGE },
       ]);
     }
+    if (product.outOfStock) {
+      throw new ConflictError(outOfStockMessage(product.name));
+    }
+    const productName = product.name;
 
     const isNewLine = await this.incrementOrCreateLine(
       basketId,
@@ -63,6 +71,23 @@ export class BasketService {
     productId: string,
     update: QuantityUpdate,
   ): Promise<Basket> {
+    const currentQuantity =
+      'quantity' in update || update.change > 0
+        ? await this.basketRepository.findLineQuantity(basketId, productId)
+        : null;
+    const increasesQuantity =
+      'quantity' in update
+        ? currentQuantity !== null && update.quantity > currentQuantity
+        : update.change > 0 &&
+          currentQuantity !== null &&
+          currentQuantity < MAX_QUANTITY;
+    if (increasesQuantity) {
+      const product = await this.basketRepository.findProduct(productId);
+      if (product?.outOfStock) {
+        throw new ConflictError(outOfStockMessage(product.name));
+      }
+    }
+
     const updatedCount =
       'change' in update
         ? await this.basketRepository.changeLineQuantity(
