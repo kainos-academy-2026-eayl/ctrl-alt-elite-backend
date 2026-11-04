@@ -14,7 +14,11 @@ import { BasketRepository } from './repo/basket_repository';
 import { createAdminProductRouter } from './routes/admin_product_routes';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
+<<<<<<< HEAD
 import { createOrderRouter } from './routes/order_routes';
+=======
+import { createInventoryRouter } from './routes/inventory_routes';
+>>>>>>> origin
 import {
   createAdminSupportTicketRouter,
   createSupportTicketRouter,
@@ -64,6 +68,8 @@ export function createApp(
     requireStaff,
     requireTicketUser,
     requireOrderCustomer,
+    requireAnyStaff,
+    requireInventory,
   } = createAuthorization(database, jwtSecret);
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
@@ -164,7 +170,7 @@ export function createApp(
   // /api/admin falls through to the ADMIN-only guard below.
   app.get(
     '/api/admin/profile',
-    requireStaff,
+    requireAnyStaff,
     async (_req: Request, res: Response) => {
       res.json(await getAdminProfile(database, res.locals.userId));
     },
@@ -172,7 +178,7 @@ export function createApp(
 
   app.put(
     '/api/admin/profile',
-    requireStaff,
+    requireAnyStaff,
     async (req: Request, res: Response) => {
       if (!req.is('application/json')) {
         res
@@ -187,7 +193,7 @@ export function createApp(
 
   app.put(
     '/api/admin/change-password',
-    requireStaff,
+    requireAnyStaff,
     async (req: Request, res: Response) => {
       if (!req.is('application/json')) {
         res
@@ -205,6 +211,12 @@ export function createApp(
     '/api/admin/support/tickets',
     requireStaff,
     createAdminSupportTicketRouter(database),
+  );
+
+  app.use(
+    '/api/admin/inventory',
+    requireInventory,
+    createInventoryRouter(database),
   );
 
   app.use('/api/admin/customers', requireStaff, customers);

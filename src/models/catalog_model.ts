@@ -8,6 +8,7 @@ export const productSelect = {
   description: true,
   price: true,
   stock: true,
+  outOfStock: true,
   image: true,
 } as const satisfies Prisma.ProductSelect;
 
