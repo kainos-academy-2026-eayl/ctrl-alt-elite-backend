@@ -22,3 +22,30 @@ export class InsufficientStockError extends ConflictError {
     super('Insufficient stock for one or more products.');
   }
 }
+
+function formatPounds(pence: number): string {
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+  }).format(pence / 100);
+}
+
+export class InsufficientCreditError extends ConflictError {
+  constructor(balancePence: number, totalPence: number) {
+    super(
+      `Your credit balance of ${formatPounds(balancePence)} is not enough to pay ${formatPounds(totalPence)}.`,
+    );
+  }
+}
+
+export class OrderNotFoundError extends NotFoundError {
+  constructor() {
+    super('Order not found.');
+  }
+}
+
+export class AccountNotFoundError extends NotFoundError {
+  constructor() {
+    super('Account not found.');
+  }
+}
