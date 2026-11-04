@@ -107,9 +107,9 @@ Inventory endpoints (`requireInventory`, `ADMIN` or `INVENTORY_MANAGEMENT`):
 - `GET /api/admin/inventory` and `GET /api/admin/inventory/low-stock`: products
   with `stock`, `lowStockThreshold`, `outOfStock`, `lowStock` and `status`
   (`IN_STOCK`, `LOW_STOCK`, `OUT_OF_STOCK`).
-- `PUT /api/admin/inventory/:id/stock` with `{ "stock": 12, "lowStockThreshold": 5 }`
+- `PATCH /api/admin/inventory/:id/stock` with `{ "stock": 12, "lowStockThreshold": 5 }`
   (`lowStockThreshold` optional; each product has its own, default 10).
-- `PUT /api/admin/inventory/:id/out-of-stock` with `{ "outOfStock": true }`. A
+- `PATCH /api/admin/inventory/:id/out-of-stock` with `{ "outOfStock": true }`. A
   product with this flag cannot be added to a basket (409) and is reported as not
   in stock by search, even if its stock is above zero. Updating stock does not
   clear the flag.

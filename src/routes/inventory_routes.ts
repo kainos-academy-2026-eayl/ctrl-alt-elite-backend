@@ -28,14 +28,14 @@ export function createInventoryRouter(database: PrismaClient): Router {
     res.json({ products: await listInventory(database) });
   });
 
-  router.put('/:id/stock', requireJson, async (req, res) => {
+  router.patch('/:id/stock', requireJson, async (req, res) => {
     const input = validateStockUpdate(req.body);
     res.json({
       product: await updateStock(database, String(req.params.id), input),
     });
   });
 
-  router.put('/:id/out-of-stock', requireJson, async (req, res) => {
+  router.patch('/:id/out-of-stock', requireJson, async (req, res) => {
     const input = validateOutOfStockUpdate(req.body);
     res.json({
       product: await setOutOfStock(database, String(req.params.id), input),

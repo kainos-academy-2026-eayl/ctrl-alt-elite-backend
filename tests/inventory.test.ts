@@ -141,7 +141,7 @@ test('the low-stock endpoint highlights only products at or below their own thre
 test('stock quantity and threshold can be updated and are saved', async () => {
   const { app, token, rows } = await fixture();
   const response = await request(app)
-    .put('/api/admin/inventory/p-2/stock')
+    .patch('/api/admin/inventory/p-2/stock')
     .auth(token, { type: 'bearer' })
     .send({ stock: 100, lowStockThreshold: 20 });
   assert.equal(response.status, 200);
@@ -154,7 +154,7 @@ test('stock quantity and threshold can be updated and are saved', async () => {
 test('products can be marked out of stock and restored', async () => {
   const { app, token, rows } = await fixture();
   const marked = await request(app)
-    .put('/api/admin/inventory/p-1/out-of-stock')
+    .patch('/api/admin/inventory/p-1/out-of-stock')
     .auth(token, { type: 'bearer' })
     .send({ outOfStock: true });
   assert.equal(marked.status, 200);
@@ -162,7 +162,7 @@ test('products can be marked out of stock and restored', async () => {
   assert.equal(rows[0]?.outOfStock, true);
 
   const restored = await request(app)
-    .put('/api/admin/inventory/p-1/out-of-stock')
+    .patch('/api/admin/inventory/p-1/out-of-stock')
     .auth(token, { type: 'bearer' })
     .send({ outOfStock: false });
   assert.equal(restored.body.product.status, 'IN_STOCK');
@@ -179,7 +179,7 @@ test('invalid stock updates are rejected and nothing is saved', async () => {
     {},
   ]) {
     const response = await request(app)
-      .put('/api/admin/inventory/p-1/stock')
+      .patch('/api/admin/inventory/p-1/stock')
       .auth(token, { type: 'bearer' })
       .send(body);
     assert.equal(response.status, 400, JSON.stringify(body));
@@ -187,7 +187,7 @@ test('invalid stock updates are rejected and nothing is saved', async () => {
   assert.equal(rows[0]?.stock, 50);
 
   const negative = await request(app)
-    .put('/api/admin/inventory/p-1/stock')
+    .patch('/api/admin/inventory/p-1/stock')
     .auth(token, { type: 'bearer' })
     .send({ stock: -1, lowStockThreshold: -5 });
   assert.deepEqual(negative.body.errors, [
@@ -199,7 +199,7 @@ test('invalid stock updates are rejected and nothing is saved', async () => {
   ]);
 
   const notANumber = await request(app)
-    .put('/api/admin/inventory/p-1/stock')
+    .patch('/api/admin/inventory/p-1/stock')
     .auth(token, { type: 'bearer' })
     .send({ stock: '-' });
   assert.deepEqual(notANumber.body.errors, [
@@ -207,7 +207,7 @@ test('invalid stock updates are rejected and nothing is saved', async () => {
   ]);
 
   const flag = await request(app)
-    .put('/api/admin/inventory/p-1/out-of-stock')
+    .patch('/api/admin/inventory/p-1/out-of-stock')
     .auth(token, { type: 'bearer' })
     .send({ outOfStock: 'yes' });
   assert.equal(flag.status, 400);
@@ -216,7 +216,7 @@ test('invalid stock updates are rejected and nothing is saved', async () => {
 test('updating an unknown product returns 404', async () => {
   const { app, token } = await fixture();
   const response = await request(app)
-    .put('/api/admin/inventory/missing/stock')
+    .patch('/api/admin/inventory/missing/stock')
     .auth(token, { type: 'bearer' })
     .send({ stock: 5 });
   assert.equal(response.status, 404);
@@ -267,9 +267,9 @@ test('customer service and customers are denied inventory access', async (contex
       request(app).get('/api/admin/inventory'),
       request(app).get('/api/admin/inventory/dashboard'),
       request(app).get('/api/admin/inventory/low-stock'),
-      request(app).put('/api/admin/inventory/p-1/stock').send({ stock: 1 }),
+      request(app).patch('/api/admin/inventory/p-1/stock').send({ stock: 1 }),
       request(app)
-        .put('/api/admin/inventory/p-1/out-of-stock')
+        .patch('/api/admin/inventory/p-1/out-of-stock')
         .send({ outOfStock: true }),
     ]) {
       const response = await attempt.auth(token, { type: 'bearer' });
@@ -285,7 +285,7 @@ test('inventory routes reject unauthenticated requests with 401', async (context
   assert.equal(
     (
       await request(app)
-        .put('/api/admin/inventory/p-1/stock')
+        .patch('/api/admin/inventory/p-1/stock')
         .send({ stock: 1 })
     ).status,
     401,
