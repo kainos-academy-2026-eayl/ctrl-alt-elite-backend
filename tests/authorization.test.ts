@@ -336,6 +336,6 @@ test('requireOrderCustomer propagates database failures', async (context) => {
 
   await assert.rejects(
     invoke(requireOrderCustomer, `Bearer ${token}`),
-    (error: unknown) => error === 500,
+    (error: unknown) => error === failure,
   );
 });
