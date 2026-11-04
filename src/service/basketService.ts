@@ -71,6 +71,23 @@ export class BasketService {
     productId: string,
     update: QuantityUpdate,
   ): Promise<Basket> {
+    const currentQuantity =
+      'quantity' in update || update.change > 0
+        ? await this.basketRepository.findLineQuantity(basketId, productId)
+        : null;
+    const increasesQuantity =
+      'quantity' in update
+        ? currentQuantity !== null && update.quantity > currentQuantity
+        : update.change > 0 &&
+          currentQuantity !== null &&
+          currentQuantity < MAX_QUANTITY;
+    if (increasesQuantity) {
+      const product = await this.basketRepository.findProduct(productId);
+      if (product?.outOfStock) {
+        throw new ConflictError(outOfStockMessage(product.name));
+      }
+    }
+
     const updatedCount =
       'change' in update
         ? await this.basketRepository.changeLineQuantity(
