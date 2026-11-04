@@ -14,11 +14,8 @@ import { BasketRepository } from './repo/basket_repository';
 import { createAdminProductRouter } from './routes/admin_product_routes';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
-<<<<<<< HEAD
 import { createOrderRouter } from './routes/order_routes';
-=======
 import { createInventoryRouter } from './routes/inventory_routes';
->>>>>>> origin
 import {
   createAdminSupportTicketRouter,
   createSupportTicketRouter,
