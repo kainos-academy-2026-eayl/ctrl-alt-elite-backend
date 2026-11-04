@@ -98,5 +98,10 @@ export function createAuthorization(database: PrismaClient, secret: string) {
       'Support ticket',
       'Customer or administrator',
     ),
+    requireUser: requireRole(
+      ['CUSTOMER', 'ADMIN', 'CUSTOMER_SERVICE'],
+      'Account',
+      'Signed-in user',
+    ),
   };
 }
