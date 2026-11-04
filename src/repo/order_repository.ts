@@ -41,7 +41,6 @@ export function createOrderRepository(database: OrderDatabase) {
           }
 
           // Calculate this item's contribution to the total.
-          totalMinorUnits += item.quantity * product.price;
 
           const unitPriceMinorUnits = Math.round(product.price * 100);
           const lineTotalMinorUnits = unitPriceMinorUnits * item.quantity;
