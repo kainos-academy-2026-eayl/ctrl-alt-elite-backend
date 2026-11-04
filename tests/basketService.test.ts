@@ -142,6 +142,20 @@ test('should throw ValidationError when the product is not in the catalogue', as
   });
 });
 
+test('should reject adding a product that is marked out of stock', async () => {
+  database.product.findUnique.mock.mockImplementation(async () => ({
+    name: 'Desk Lamp',
+    outOfStock: true,
+  }));
+
+  await assert.rejects(service.addItem(BASKET_ID, 'sample-lamp'), {
+    constructor: ConflictError,
+    message: 'Desk Lamp is out of stock.',
+  });
+  assert.equal(database.basketItem.create.mock.callCount(), 0);
+  assert.equal(database.basketItem.updateMany.mock.callCount(), 0);
+});
+
 test('should throw NotFoundError when adding to a missing basket', async () => {
   database.basket.findUnique.mock.mockImplementation(async () => null);
 
@@ -187,6 +201,9 @@ test('should retry increment when a concurrent add creates the line after the fi
 });
 
 test('should set the quantity of a line in the basket', async () => {
+  database.basketItem.findUnique.mock.mockImplementation(async () => ({
+    quantity: 2,
+  }));
   database.basketItem.updateMany.mock.mockImplementation(async () => ({
     count: 1,
   }));
@@ -199,6 +216,43 @@ test('should set the quantity of a line in the basket', async () => {
       data: { quantity: 5 },
     },
   ]);
+});
+
+test('should reject increasing a line marked out of stock with a quantity', async () => {
+  database.basketItem.findUnique.mock.mockImplementation(async () => ({
+    quantity: 2,
+  }));
+  database.product.findUnique.mock.mockImplementation(async () => ({
+    name: 'Desk Lamp',
+    outOfStock: true,
+  }));
+
+  await assert.rejects(
+    service.updateItemQuantity(BASKET_ID, 'sample-lamp', { quantity: 99 }),
+    {
+      constructor: ConflictError,
+      message: 'Desk Lamp is out of stock.',
+    },
+  );
+  assert.equal(database.basketItem.updateMany.mock.callCount(), 0);
+});
+
+test('should allow reducing a line marked out of stock with a quantity', async () => {
+  database.basketItem.findUnique.mock.mockImplementation(async () => ({
+    quantity: 2,
+  }));
+  database.basketItem.updateMany.mock.mockImplementation(async () => ({
+    count: 1,
+  }));
+  database.product.findUnique.mock.mockImplementation(async () => ({
+    name: 'Desk Lamp',
+    outOfStock: true,
+  }));
+
+  await service.updateItemQuantity(BASKET_ID, 'sample-lamp', { quantity: 1 });
+
+  assert.equal(database.basketItem.updateMany.mock.callCount(), 1);
+  assert.equal(database.product.findUnique.mock.callCount(), 0);
 });
 
 test('should throw NotFoundError when updating an item not in the basket', async () => {
@@ -221,6 +275,37 @@ test('should apply a +/- change in one clamped database update', async () => {
   );
   assert.deepEqual(values, [-1, 99, BASKET_ID, 'sample-lamp']);
   assert.equal(database.basketItem.updateMany.mock.callCount(), 0);
+});
+
+test('should reject increasing a line marked out of stock with a change', async () => {
+  database.basketItem.findUnique.mock.mockImplementation(async () => ({
+    quantity: 2,
+  }));
+  database.product.findUnique.mock.mockImplementation(async () => ({
+    name: 'Desk Lamp',
+    outOfStock: true,
+  }));
+
+  await assert.rejects(
+    service.updateItemQuantity(BASKET_ID, 'sample-lamp', { change: 1 }),
+    {
+      constructor: ConflictError,
+      message: 'Desk Lamp is out of stock.',
+    },
+  );
+  assert.equal(database.$executeRaw.mock.callCount(), 0);
+});
+
+test('should allow reducing a line marked out of stock with a change', async () => {
+  database.product.findUnique.mock.mockImplementation(async () => ({
+    name: 'Desk Lamp',
+    outOfStock: true,
+  }));
+
+  await service.updateItemQuantity(BASKET_ID, 'sample-lamp', { change: -1 });
+
+  assert.equal(database.$executeRaw.mock.callCount(), 1);
+  assert.equal(database.product.findUnique.mock.callCount(), 0);
 });
 
 test('should throw NotFoundError when changing an item not in the basket', async () => {

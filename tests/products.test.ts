@@ -13,6 +13,7 @@ const product = {
   description: 'A compact desk lamp.',
   price: 24.99,
   stock: 8,
+  outOfStock: false,
   image: Uint8Array.from(
     Buffer.from(
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p94AAAAASUVORK5CYII=',
@@ -64,6 +65,7 @@ test('GET /api/products returns the product list as JSON', async () => {
           description: true,
           price: true,
           stock: true,
+          outOfStock: true,
           image: true,
         });
         assert.deepEqual(orderBy, { name: 'asc' });
