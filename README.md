@@ -92,19 +92,37 @@ or `CUSTOMER_SERVICE`. Both `/api/admin/customers` and the existing
 
 Staff roles and the admin namespace:
 
-| Endpoint | `ADMIN` | `CUSTOMER_SERVICE` |
-| --- | --- | --- |
-| `/api/admin/profile`, `/api/admin/change-password` | yes | yes |
-| `GET /api/admin/customers[/:id]` | yes | yes |
-| `PUT /api/admin/customers/:id[/password]` | yes | 403 |
-| `/api/admin/support/tickets/**` | yes | yes |
-| Any other `/api/admin/**` endpoint | yes | 403 |
+| Endpoint | `ADMIN` | `CUSTOMER_SERVICE` | `INVENTORY_MANAGEMENT` |
+| --- | --- | --- | --- |
+| `/api/admin/profile`, `/api/admin/change-password` | yes | yes | yes |
+| `GET /api/admin/customers[/:id]` | yes | yes | 403 |
+| `PUT /api/admin/customers/:id[/password]` | yes | 403 | 403 |
+| `/api/admin/support/tickets/**` | yes | yes | 403 |
+| `/api/admin/inventory/**` | yes | 403 | yes |
+| Any other `/api/admin/**` endpoint | yes | 403 | 403 |
 
-Staff-accessible routes are listed explicitly in `src/app.ts` with `requireStaff`;
-everything else under `/api/admin` falls through to an `ADMIN`-only guard, so new
-admin endpoints are denied to other roles by default. To add a role (for example
-Finance), add it to the `Role` enum and `supportedRoles`, then add it to the
-relevant `requireRole` lists in the authorization middleware.
+Inventory endpoints (`requireInventory`, `ADMIN` or `INVENTORY_MANAGEMENT`):
+
+- `GET /api/admin/inventory/dashboard`: summary counts and the low-stock list.
+- `GET /api/admin/inventory` and `GET /api/admin/inventory/low-stock`: products
+  with `stock`, `lowStockThreshold`, `outOfStock`, `lowStock` and `status`
+  (`IN_STOCK`, `LOW_STOCK`, `OUT_OF_STOCK`).
+- `PATCH /api/admin/inventory/:id/stock` with `{ "stock": 12, "lowStockThreshold": 5 }`
+  (`lowStockThreshold` optional; each product has its own, default 10).
+- `PATCH /api/admin/inventory/:id/out-of-stock` with `{ "outOfStock": true }`. A
+  product with this flag cannot be added to a basket (409) and is reported as not
+  in stock by search, even if its stock is above zero. Updating stock does not
+  clear the flag.
+
+A product is low stock when `stock <= lowStockThreshold` or it is out of stock.
+
+Staff-accessible routes are listed explicitly in `src/app.ts` (`requireStaff` for
+customer service, `requireAnyStaff` for shared profile routes, `requireInventory`
+for inventory); everything else under `/api/admin` falls through to an
+`ADMIN`-only guard, so new admin endpoints are denied to other roles by default.
+To add a role (for example Finance), add it to the `Role` enum and
+`supportedRoles`, then add it to the relevant `requireRole` lists in the
+authorization middleware.
 
 ### Authentication and authorization
 

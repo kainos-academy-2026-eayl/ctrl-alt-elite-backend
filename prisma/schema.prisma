@@ -11,6 +11,7 @@ enum Role {
   CUSTOMER
   ADMIN
   CUSTOMER_SERVICE
+  INVENTORY_MANAGEMENT
 }
 
 enum TicketStatus {
@@ -113,6 +114,8 @@ model Product {
     description  String           @default("")
     price        Float
     stock        Int
+    lowStockThreshold Int         @default(10)
+    outOfStock   Boolean          @default(false)
     image        Bytes
     createdAt    DateTime @default(now())
     

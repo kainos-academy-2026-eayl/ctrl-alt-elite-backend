@@ -52,7 +52,7 @@ function toSearchItem(product: CatalogProduct): ProductSearchItemDto {
     imageUrl: toImageDataUrl(product.image),
     price: product.price.toFixed(2),
     keywords: [product.category],
-    isInStock: product.stock > 0,
+    isInStock: product.stock > 0 && !product.outOfStock,
   };
 }
 
