@@ -15,6 +15,27 @@ import {
 
 const secret = 'profile-test-secret-with-at-least-32-bytes';
 
+const contactFieldLimits = {
+  addressLine1: 200,
+  addressLine2: 200,
+  postcode: 20,
+  phoneNumber: 30,
+} as const;
+const contactDetails = {
+  addressLine1: '12 High Street',
+  addressLine2: 'Flat 4',
+  postcode: 'SW1A 1AA',
+  phoneNumber: '+44 (20) 7946-0958.1',
+};
+const invalidPhoneNumbers = [
+  '020 CALL NOW',
+  '020/7946/0958',
+  '020_7946_0958',
+  '020+7946',
+  '++442079460958',
+  '+ ()-.',
+];
+
 function fixture() {
   const record = {
     id: 'customer-1',
@@ -25,10 +46,10 @@ function fixture() {
     profilePhoto: null as Uint8Array | null,
     passwordHash: 'never-return-this',
     email: 'private@example.com',
-    addressLine1: null,
-    addressLine2: null,
-    postcode: null,
-    phoneNumber: null,
+    addressLine1: null as string | null,
+    addressLine2: null as string | null,
+    postcode: null as string | null,
+    phoneNumber: null as string | null,
   };
   const state = { exists: true, failure: null as Error | null };
   const findUnique = mock.fn(async (query: { where: { id: string } }) => {
@@ -43,6 +64,10 @@ function fixture() {
         lastName?: string;
         username?: string | null;
         profilePhoto?: Uint8Array | null;
+        addressLine1?: string | null;
+        addressLine2?: string | null;
+        postcode?: string | null;
+        phoneNumber?: string | null;
       };
     }) => {
       if (state.failure) throw state.failure;
@@ -99,6 +124,36 @@ test('profile validation trims values, supports partial updates and clears optio
     { firstName: 'x'.repeat(101) },
   ]) {
     assert.throws(() => validateOwnProfileUpdate(body), ValidationError);
+  }
+});
+
+test('contact validation trims fields, clears blanks and nulls, and enforces length and type limits', () => {
+  for (const [field, maximum] of Object.entries(contactFieldLimits)) {
+    const value =
+      field === 'phoneNumber' ? '1'.repeat(maximum) : 'A'.repeat(maximum);
+    assert.deepEqual(validateOwnProfileUpdate({ [field]: ` ${value} ` }), {
+      [field]: value,
+    });
+    for (const blank of ['', ' \t\n ', null]) {
+      assert.deepEqual(validateOwnProfileUpdate({ [field]: blank }), {
+        [field]: null,
+      });
+    }
+    for (const invalid of [`${value}1`, 42, false, [], {}]) {
+      assert.throws(
+        () => validateOwnProfileUpdate({ [field]: invalid }),
+        ValidationError,
+        `${field} must reject ${JSON.stringify(invalid)}`,
+      );
+    }
+  }
+  assert.deepEqual(validateOwnProfileUpdate(contactDetails), contactDetails);
+  for (const phoneNumber of invalidPhoneNumbers) {
+    assert.throws(
+      () => validateOwnProfileUpdate({ phoneNumber }),
+      ValidationError,
+      `Invalid phone number: ${phoneNumber}`,
+    );
   }
 });
 
@@ -186,6 +241,114 @@ test('profile changes persist on reload and preserve omitted fields and credenti
     ).body.username,
     null,
   );
+});
+
+test('contact PATCH updates are trimmed, persisted on reload and preserve omitted fields', async () => {
+  const { app, record, issueToken, update } = fixture();
+  const token = await issueToken(record.id);
+  const maximumDetails = Object.fromEntries(
+    Object.entries(contactFieldLimits).map(([field, maximum]) => [
+      field,
+      field === 'phoneNumber' ? '1'.repeat(maximum) : 'A'.repeat(maximum),
+    ]),
+  );
+  for (const details of [contactDetails, maximumDetails]) {
+    const response = await request(app)
+      .patch('/api/profile')
+      .auth(token, { type: 'bearer' })
+      .send(
+        Object.fromEntries(
+          Object.entries(details).map(([field, value]) => [
+            field,
+            ` ${value} `,
+          ]),
+        ),
+      );
+    assert.equal(response.status, 200);
+    assert.deepEqual(update.mock.calls.at(-1)?.arguments[0].data, details);
+    assert.deepEqual(response.body, {
+      id: record.id,
+      username: record.username,
+      firstName: record.firstName,
+      lastName: record.lastName,
+      email: record.email,
+      ...details,
+      hasPhoto: false,
+    });
+    const reload = await request(app)
+      .get('/api/profile')
+      .auth(token, { type: 'bearer' });
+    assert.equal(reload.status, 200);
+    assert.deepEqual(reload.body, response.body);
+
+    const partial = { firstName: 'Updated', addressLine1: '34 New Road' };
+    const preserved = { ...response.body, ...partial };
+    const partialResponse = await request(app)
+      .patch('/api/profile')
+      .auth(token, { type: 'bearer' })
+      .send(partial);
+    assert.equal(partialResponse.status, 200);
+    assert.deepEqual(partialResponse.body, preserved);
+    assert.deepEqual(update.mock.calls.at(-1)?.arguments[0].data, partial);
+    const partialReload = await request(app)
+      .get('/api/profile')
+      .auth(token, { type: 'bearer' });
+    assert.equal(partialReload.status, 200);
+    assert.deepEqual(partialReload.body, preserved);
+  }
+});
+
+test('each contact field can be cleared with blank or null PATCH values and stays cleared on reload', async () => {
+  const { app, record, issueToken, update } = fixture();
+  const token = await issueToken(record.id);
+  for (const field of Object.keys(contactFieldLimits)) {
+    for (const blank of ['', ' \t\n ', null]) {
+      const seed = await request(app)
+        .patch('/api/profile')
+        .auth(token, { type: 'bearer' })
+        .send(contactDetails);
+      assert.equal(seed.status, 200);
+      const response = await request(app)
+        .patch('/api/profile')
+        .auth(token, { type: 'bearer' })
+        .send({ [field]: blank });
+      assert.equal(response.status, 200);
+      assert.deepEqual(response.body, { ...seed.body, [field]: null });
+      assert.deepEqual(update.mock.calls.at(-1)?.arguments[0].data, {
+        [field]: null,
+      });
+      const reload = await request(app)
+        .get('/api/profile')
+        .auth(token, { type: 'bearer' });
+      assert.equal(reload.status, 200);
+      assert.deepEqual(reload.body, response.body);
+    }
+  }
+});
+
+test('invalid contact PATCH values are rejected without persisting any changes', async () => {
+  const { app, record, issueToken, update } = fixture();
+  const token = await issueToken(record.id);
+  Object.assign(record, contactDetails);
+  const original = { ...record };
+  const invalidUpdates = Object.entries(contactFieldLimits).flatMap(
+    ([field, maximum]) => [
+      { [field]: '1'.repeat(maximum + 1) },
+      { [field]: 42 },
+    ],
+  );
+  invalidUpdates.push(
+    ...invalidPhoneNumbers.map((phoneNumber) => ({ phoneNumber })),
+  );
+  for (const invalid of invalidUpdates) {
+    const response = await request(app)
+      .patch('/api/profile')
+      .auth(token, { type: 'bearer' })
+      .send({ firstName: 'Must not persist', ...invalid });
+    assert.equal(response.status, 400, JSON.stringify(invalid));
+    assert.equal(update.mock.callCount(), 0);
+    assert.deepEqual(record, original);
+  }
 });
 
 test('duplicate usernames return a conflict and leave the profile unchanged', async () => {
