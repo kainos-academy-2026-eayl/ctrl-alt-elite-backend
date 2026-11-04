@@ -11,6 +11,11 @@ import {
   CustomerValidationError,
 } from '../src/errors/customer_errors';
 import { RoleNotDeterminedError } from '../src/errors/login_errors';
+import {
+  InsufficientStockError,
+  OrderProductNotFoundError,
+  OrderValidationError,
+} from '../src/errors/order_errors';
 import { RegistrationValidationError } from '../src/errors/registration_errors';
 import { Prisma } from '../src/generated/prisma/client';
 import { ErrorHandler } from '../src/middleware/error_handler_middleware';
@@ -82,6 +87,18 @@ const cases = [
     error: new ConflictError('You already have the maximum'),
     statusCode: 409,
     message: 'You already have the maximum',
+  },
+  {
+    name: 'returns 404 when an ordered product is missing',
+    error: new OrderProductNotFoundError(),
+    statusCode: 404,
+    message: 'One or more products were not found.',
+  },
+  {
+    name: 'returns 409 when an ordered product has insufficient stock',
+    error: new InsufficientStockError(),
+    statusCode: 409,
+    message: 'Insufficient stock for one or more products.',
   },
 ];
 
@@ -159,3 +176,25 @@ for (const error of [
     ]);
   });
 }
+
+test('returns field-level details for invalid order input', () => {
+  const { status, json, next } = handleError(new OrderValidationError());
+
+  assert.deepEqual(status.mock.calls[0]?.arguments, [400]);
+
+  assert.deepEqual(json.mock.calls[0]?.arguments, [
+    {
+      message: 'Please provide valid order details.',
+      errors: [
+        {
+          field: 'items',
+          message: 'Please provide valid order details.',
+        },
+      ],
+    },
+  ]);
+
+  assert.equal(status.mock.callCount(), 1);
+  assert.equal(json.mock.callCount(), 1);
+  assert.equal(next.mock.callCount(), 0);
+});
