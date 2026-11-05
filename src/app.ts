@@ -16,6 +16,7 @@ import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import { createInventoryRouter } from './routes/inventory_routes';
 import { createOrderRouter } from './routes/order_routes';
+import { createProfileRouter } from './routes/profile_routes';
 import {
   createAdminSupportTicketRouter,
   createSupportTicketRouter,
@@ -64,9 +65,10 @@ export function createApp(
     requireAdmin,
     requireStaff,
     requireTicketUser,
-    requireOrderCustomer,
+    requireAuthenticatedUser,
     requireAnyStaff,
     requireInventory,
+    requireUser,
   } = createAuthorization(database, jwtSecret);
   const app = express();
   app.use(cors({ origin: frontendOrigin }));
@@ -89,6 +91,12 @@ export function createApp(
   });
 
   app.use('/api', createCatalogRouter(database));
+  app.use(
+    '/api/profile',
+    createProfileRouter(database, requireAuthenticatedUser),
+  );
+
+  app.use('/api', createOrderRouter(database, requireUser));
 
   app.use(
     '/api/support/tickets',
@@ -225,7 +233,6 @@ export function createApp(
     '/api/baskets',
     createBasketRouter(new BasketController(services.basketService)),
   );
-  app.use('/api', createOrderRouter(database, requireOrderCustomer));
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);
 

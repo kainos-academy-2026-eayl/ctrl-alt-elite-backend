@@ -14,6 +14,7 @@ const product: CatalogProduct = {
   stock: 8,
   outOfStock: false,
   image: Buffer.from('89504e470d0a1a0a', 'hex'),
+  createdAt: new Date('2026-10-22T10:00:00Z'),
 };
 
 const expectedSelect = {
@@ -25,6 +26,7 @@ const expectedSelect = {
   stock: true,
   outOfStock: true,
   image: true,
+  createdAt: true,
 };
 
 test('repository selects catalogue fields and orders products by name', async () => {
@@ -68,6 +70,35 @@ test('repository preserves empty lists and missing products', async () => {
   assert.equal(await repository.findById('missing'), null);
 });
 
+test('repository aggregates units sold by product in the database', async () => {
+  const groupBy = mock.fn(async () => [
+    { product_id: 'product-123', _sum: { amount: 7 } },
+    { product_id: 'product-456', _sum: { amount: null } },
+  ]);
+  const repository = createCatalogRepository({
+    order_products: { groupBy },
+    product: {
+      findMany: async () => [],
+      findUnique: async () => null,
+    },
+  });
+
+  assert.deepEqual(
+    [...(await repository.findUnitsSold())],
+    [
+      ['product-123', 7],
+      ['product-456', 0],
+    ],
+  );
+  assert.deepEqual(groupBy.mock.calls[0]?.arguments, [
+    {
+      by: ['product_id'],
+      _sum: { amount: true },
+      orderBy: { product_id: 'asc' },
+    },
+  ]);
+});
+
 test('repository propagates database failures from both queries', async () => {
   const failure = new Error('Database unavailable');
   const fail = async () => {
@@ -104,7 +135,7 @@ for (const [mimeType, image] of [
       image: `data:${mimeType};base64,${Buffer.from(image).toString('base64')}`,
     };
 
-    assert.deepEqual(await service.getAll(), [expected]);
+    assert.deepEqual((await service.getAll()).products, [expected]);
     assert.deepEqual(await service.getById(product.id), expected);
     assert.deepEqual(findById.mock.calls[0]?.arguments, [product.id]);
     assert.equal(storedProduct.image, image);
@@ -118,7 +149,7 @@ test('service preserves empty lists and missing products', async () => {
     findById: async () => null,
   });
 
-  assert.deepEqual(await service.getAll(), []);
+  assert.deepEqual((await service.getAll()).products, []);
   assert.equal(await service.getById('missing'), null);
 });
 

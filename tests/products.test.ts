@@ -20,12 +20,19 @@ const product = {
       'base64',
     ),
   ),
+  createdAt: new Date('2026-10-22T10:00:00Z'),
 };
 
 const expectedProduct = {
   ...product,
   image: `data:image/png;base64,${Buffer.from(product.image).toString('base64')}`,
+  createdAt: '2026-10-22T10:00:00.000Z',
 };
+
+/** The product list from GET /api/products, without its filter details. */
+async function listedProducts(response: Response): Promise<unknown> {
+  return ((await response.json()) as { products: unknown }).products;
+}
 
 async function withServer(
   database: unknown,
@@ -67,6 +74,7 @@ test('GET /api/products returns the product list as JSON', async () => {
           stock: true,
           outOfStock: true,
           image: true,
+          createdAt: true,
         });
         assert.deepEqual(orderBy, { name: 'asc' });
         return [product];
@@ -78,7 +86,7 @@ test('GET /api/products returns the product list as JSON', async () => {
     const response = await fetch(`${baseUrl}/api/products`);
 
     assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), { products: [expectedProduct] });
+    assert.deepEqual(await listedProducts(response), [expectedProduct]);
   });
 });
 
@@ -88,7 +96,7 @@ test('GET /api/products returns an empty list when there are no products', async
     async (baseUrl) => {
       const response = await fetch(`${baseUrl}/api/products`);
       assert.equal(response.status, 200);
-      assert.deepEqual(await response.json(), { products: [] });
+      assert.deepEqual(await listedProducts(response), []);
     },
   );
 });
@@ -152,6 +160,7 @@ for (const file of ['desk-lamp.svg', 'ceramic-mug.svg', 'notebook.svg']) {
     const expected = {
       ...svgProduct,
       image: `data:image/svg+xml;base64,${image.toString('base64')}`,
+      createdAt: expectedProduct.createdAt,
     };
 
     assert.match(image.toString('utf8'), /width="640" height="480"/);
@@ -165,7 +174,7 @@ for (const file of ['desk-lamp.svg', 'ceramic-mug.svg', 'notebook.svg']) {
       async (baseUrl) => {
         const list = await fetch(`${baseUrl}/api/products`);
         assert.equal(list.status, 200);
-        assert.deepEqual(await list.json(), { products: [expected] });
+        assert.deepEqual(await listedProducts(list), [expected]);
         const detail = await fetch(`${baseUrl}/api/products/${product.id}`);
         assert.equal(detail.status, 200);
         assert.deepEqual(await detail.json(), { product: expected });
@@ -183,6 +192,7 @@ for (const [mimeType, image] of [
     const expected = {
       ...storedProduct,
       image: `data:${mimeType};base64,${image.toString('base64')}`,
+      createdAt: expectedProduct.createdAt,
     };
     await withServer(
       {
@@ -194,9 +204,10 @@ for (const [mimeType, image] of [
       async (baseUrl) => {
         const list = await fetch(`${baseUrl}/api/products`);
         assert.equal(list.status, 200);
-        assert.deepEqual(await list.json(), {
-          products: [expectedProduct, expected],
-        });
+        assert.deepEqual(await listedProducts(list), [
+          expectedProduct,
+          expected,
+        ]);
         const detail = await fetch(`${baseUrl}/api/products/${product.id}`);
         assert.equal(detail.status, 200);
         assert.deepEqual(await detail.json(), { product: expected });

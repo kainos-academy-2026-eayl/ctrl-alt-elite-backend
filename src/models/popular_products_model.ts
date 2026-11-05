@@ -24,11 +24,13 @@ export type PopularProductsDatabase = {
   order_products: {
     groupBy(args: {
       by: ['product_id'];
-      where: { product: typeof IN_STOCK };
+      where?: { product: typeof IN_STOCK };
       _sum: { amount: true };
-      orderBy: [{ _sum: { amount: 'desc' } }, { product_id: 'asc' }];
-      take: number;
-    }): PromiseLike<{ product_id: string }[]>;
+      orderBy:
+        | [{ _sum: { amount: 'desc' } }, { product_id: 'asc' }]
+        | { product_id: 'asc' };
+      take?: number;
+    }): PromiseLike<{ product_id: string; _sum: { amount: number | null } }[]>;
   };
   product: {
     findMany(args: {

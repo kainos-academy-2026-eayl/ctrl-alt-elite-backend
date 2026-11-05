@@ -36,7 +36,15 @@ model User {
   lastName     String   @db.VarChar(100)
   email        String   @unique @db.VarChar(254)
   passwordHash String
+  username     String?  @unique @db.VarChar(30)
+  profilePhoto Bytes?
+  addressLine1 String?  @db.VarChar(200)
+  addressLine2 String?  @db.VarChar(200)
+  postcode     String?  @db.VarChar(20)
+  phoneNumber  String?  @db.VarChar(30)
   role         Role     @default(CUSTOMER)
+  // Spent at checkout. Every account starts with £500.00.
+  creditBalancePence Int @default(50000)
   createdAt    DateTime @default(now())
   orders       order[]
   supportTickets SupportTicket[]
@@ -77,6 +85,18 @@ model order {
     order_total  Float
     order_status String
     createdAt    DateTime @default(now())
+
+    // Checkout details. Orders placed before checkout existed have none.
+    first_name           String? @db.VarChar(100)
+    last_name            String? @db.VarChar(100)
+    email                String? @db.VarChar(254)
+    phone                String? @db.VarChar(20)
+    address_line1        String? @db.VarChar(100)
+    address_line2        String? @db.VarChar(100)
+    town                 String? @db.VarChar(60)
+    postcode             String? @db.VarChar(8)
+    delivery_option      String? @db.VarChar(20)
+    delivery_price_pence Int     @default(0)
     
     products     order_products[]
 }
@@ -87,6 +107,8 @@ model order_products {
     product_id String
     product    Product @relation(fields: [product_id], references: [id])
     amount     Int
+    // The price paid, so later price changes do not alter past orders.
+    unit_price_pence Int @default(0)
 
     @@id([order_id, product_id])
 }

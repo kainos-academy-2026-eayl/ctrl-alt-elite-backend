@@ -86,6 +86,15 @@ export class ErrorHandler {
       res.status(409).json({ message: error.message });
     } else if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2034'
+    ) {
+      // A write conflict or deadlock rolled the transaction back.
+      console.error('Transaction conflict', error.code);
+      res
+        .status(503)
+        .json({ message: 'Order could not be completed. Please try again.' });
+    } else if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === 'P2002'
     ) {
       res.status(409).json({

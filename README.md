@@ -37,9 +37,11 @@ Start the frontend with `npm run dev` in its own repository, then open
 `http://localhost:8080/products`. The frontend server fetches the real backend;
 both processes must be running.
 
-`GET http://localhost:3001/api/products` returns `{ "products": [...] }`.
+`GET http://localhost:3001/api/products` returns
+`{ "products": [...], "facets": {...}, "appliedFilters": {...} }` (see
+[Filtering and sorting products](#filtering-and-sorting-products)).
 Each product has `id`, `name`, `category`, `description`, numeric `price`, `stock`,
-and an `image` string. Images stored in the database can be PNG, JPEG or WebP
+`createdAt` and an `image` string. Images stored in the database can be PNG, JPEG or WebP
 bytes, or SVG documents beginning with `<svg`. The API detects binary formats
 from their file signatures, not filenames, and returns a base64 data URL with
 the matching `image/png`, `image/jpeg`, `image/webp` or `image/svg+xml` media type
@@ -62,6 +64,35 @@ ranked by total units ordered. If too few products have been ordered, the
 remaining slots are filled with the newest in-stock products. `limit` defaults
 to 6 and is capped at 20; a missing or invalid value uses the default. It is
 served by the catalogue controller, service and repository.
+
+### Filtering and sorting products
+
+`GET /api/products` and `GET /api/products/search?q=...` both accept these
+optional query parameters, which can be combined
+([src/models/product_filter_model.ts](src/models/product_filter_model.ts)):
+
+| Parameter | Example | Meaning |
+| --- | --- | --- |
+| `stock` | `stock=in`, `stock=out` | In-stock and/or out-of-stock products. Both, or neither, shows everything. |
+| `category` | `category=Bags&category=Footwear` | Products in any of these categories (repeat for several). |
+| `minPrice`, `maxPrice` | `minPrice=10&maxPrice=25` | Price range in pounds, inclusive. A reversed range is swapped. |
+| `sort` | `sort=price-asc` | `recommended` (default), `price-asc`, `price-desc`, `newest`, `oldest`, `most-bought`, `name-asc` or `name-desc`. |
+
+Bad values are ignored rather than rejected, like the search term.
+`recommended` keeps the existing order (name order, or search relevance) with
+in-stock products first. `most-bought` ranks by total units ordered, then name.
+
+Both responses also include:
+
+- `facets`: the options for the products that matched before filtering:
+  `total`, `categories` (`[{ "name", "count" }]`), `stock` (`{ "in", "out" }`)
+  and `priceRange` (`{ "min", "max" }` in pounds, or `null`). Each count
+  respects the other active filters but not its own, so it shows what ticking
+  that option would add.
+- `appliedFilters`: the filters that were actually used, after cleaning:
+  `{ "stock", "categories", "minPrice", "maxPrice", "sort" }`.
+
+Search results also include each product's `category`.
 
 ## Catalogue architecture
 
@@ -194,6 +225,32 @@ returns `{ "customer": { ... } }` in the same shape. Errors: `400` for invalid
 query parameters, `404` for an unknown customer ID, `503` (logged) when the
 database is unreachable, and `500` (logged) for other failures. `id` is the
 existing UUID and `registrationDate` is the UTC date of the user's `createdAt`.
+
+## Customer profiles
+
+The authenticated `GET /api/profile` returns `id`, `username`, `firstName`,
+`lastName`, `email`, `addressLine1`, `addressLine2`, `postcode`, `phoneNumber` and
+`hasPhoto`. Identity comes only from the verified backend login token.
+
+`PATCH /api/profile` accepts any subset of the editable fields. Names are trimmed,
+nonempty and at most 100 characters. Optional username (30 characters), address
+lines (200 each), postcode (20), and phone number (30) accept null or blank strings
+to clear them; omitted values remain unchanged. Phone numbers are strings and
+allow digits, spaces, a leading plus, brackets, dots and hyphens.
+Usernames are unique and case-sensitive, for display only. Login remains email
+and password. Email is returned read-only: attempts to update it through this API
+are rejected, as are unknown fields such as roles, passwords and user IDs.
+
+`PUT /api/profile/photo` accepts raw JPG, PNG or WebP bytes up to 20 MiB and
+16 megapixels. The server decodes the image, corrects orientation, strips metadata
+and stores a WebP thumbnail no larger than 512 by 512. `GET /api/profile/photo`
+returns the current user's picture (`404` if absent); `DELETE /api/profile/photo`
+removes it. All profile responses use `Cache-Control: no-store`.
+
+Validation errors return `400`, username conflicts `409`, oversized uploads `413`,
+unsupported upload content types `415`, and rejected authentication `401`.
+Run `npm run db:deploy` and `npm run db:generate` for the additional nullable contact
+columns. Existing accounts are preserved; their unset contact fields start null.
 
 ## Support Tickets
 
@@ -521,6 +578,72 @@ first added.
 | `415` | `POST`/`PATCH` body is not `application/json` |
 
 If a stored basket id returns `404`, the frontend should create a new basket.
+
+## Checkout API
+
+Customers pay for orders from the credit balance on their account. Every
+account starts with £500.00 (`User.creditBalancePence`, default `50000`), and the
+database will not let a balance go below zero. Apply the migration with
+`npm run db:deploy` (or `npm run db:migrate` locally).
+
+| Method | Path | Login | Success |
+| --- | --- | --- | --- |
+| `GET` | `/api/delivery-options` | no | `200`, `{ "deliveryOptions": [...] }` |
+| `GET` | `/api/account` | yes | `200`, `{ "account": { firstName, lastName, email, creditBalancePence } }` |
+| `POST` | `/api/orders` | yes | `201`, `{ "order": { ... }, "creditBalancePence": 45101 }`, plus `Location` header |
+| `GET` | `/api/orders/:orderId` | yes | `200`, same shape as `POST`, for the customer's own order only |
+
+"Login" means `Authorization: Bearer <token>` from `POST /api/auth/login`, for
+any role. The customer always comes from the token, never from the body.
+Responses from these endpoints, except the delivery options, are sent with
+`Cache-Control: no-store`.
+
+Delivery options and their prices are fixed by the backend
+([src/models/order_model.ts](src/models/order_model.ts)):
+
+| `id` | Name | Description | Price |
+| --- | --- | --- | --- |
+| `standard` | Standard delivery | 3–5 working days | £0.00 |
+| `express` | Express delivery | 1–2 working days | £4.99 |
+| `collection-1` | Collection point | 0.5 miles away | £0.00 |
+| `collection-2` | Collection point | 1.2 miles away | £0.00 |
+| `collection-3` | Collection point | 2.4 miles away | £0.00 |
+
+`POST /api/orders` body (unknown fields are rejected):
+
+```json
+{
+  "items": [{ "productId": "99a89432-b64d-4c54-b6af-71591fdb0a22", "quantity": 2 }],
+  "customer": { "firstName": "Sam", "lastName": "Jones", "email": "sam@example.com", "phone": "07700 900123" },
+  "address": { "line1": "1 High Street", "line2": "", "town": "Belfast", "postcode": "bt11aa" },
+  "deliveryOption": "express"
+}
+```
+
+Phone numbers must be UK numbers made of digits, with only spaces, `+`,
+brackets, dots and dashes allowed between them. They are stored in national
+form, so `+44 (0)7700 900-123` is stored as `07700900123`. Postcodes are stored
+in the standard form, for example `BT1 1AA`. In a single transaction the order service:
+
+1. Reads each product's price and stock from the database.
+2. Reduces each product's stock with a guarded update (`stock >= quantity`), in
+   product id order, so two orders can never sell the same last item.
+3. Charges the items plus the delivery price to the customer's credit with a
+   guarded update (`creditBalancePence >= total`).
+4. Saves the order (status `PENDING`), its contact, address and delivery
+   details, and the unit price paid for each product.
+
+If any step fails, nothing is saved and no stock or credit changes. The order
+total is worked out in whole pence and stored in pounds in `order_total`.
+
+| Status | When |
+| --- | --- |
+| `400` | Invalid details, duplicate products or an unknown delivery option: `{ message, errors: [{ field, message }] }` |
+| `401` | Missing or invalid login token |
+| `404` | A product, or the order, does not exist (other customers' orders also return `404`) |
+| `409` | Not enough stock, or not enough credit, for example `Your credit balance of £10.00 is not enough to pay £60.47.` |
+| `415` | `POST` body is not `application/json` |
+| `503` | The database was unavailable, or a transaction conflict means the customer should try again |
 
 ### Block merges when CI fails
 
