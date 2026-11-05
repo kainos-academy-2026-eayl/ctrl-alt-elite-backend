@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
 import { createDatabase } from '../src/config/database_config';
+import { PRODUCT_TRANSLATIONS } from './product_translations';
 
 const products = [
   {
@@ -360,6 +361,19 @@ try {
     });
   }
   console.log(`Seeded ${catalogue_products.length} catalogue products.`);
+
+  let translationCount = 0;
+  for (const [productId, languages] of Object.entries(PRODUCT_TRANSLATIONS)) {
+    for (const [locale, text] of Object.entries(languages)) {
+      await database.productTranslation.upsert({
+        where: { productId_locale: { productId, locale } },
+        create: { productId, locale, ...text },
+        update: text,
+      });
+      translationCount += 1;
+    }
+  }
+  console.log(`Seeded ${translationCount} product translations.`);
 } finally {
   await database.$disconnect();
 }

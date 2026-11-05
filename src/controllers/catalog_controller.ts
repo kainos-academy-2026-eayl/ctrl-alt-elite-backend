@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { normalisePopularLimit } from '../models/popular_products_model';
 import { parseProductFilters } from '../models/product_filter_model';
 import { normaliseSearchTerm } from '../models/product_search_model';
+import { normaliseTranslationLocale } from '../models/product_translation_model';
 import type { CatalogService } from '../service/catalog_service';
 
 export function createCatalogController(service: CatalogService) {
@@ -15,6 +16,7 @@ export function createCatalogController(service: CatalogService) {
       const result = await service.search(
         searchTerm,
         parseProductFilters(req.query),
+        normaliseTranslationLocale(req.query.lang),
       );
       res.status(200).json({ searchTerm, ...result });
     },

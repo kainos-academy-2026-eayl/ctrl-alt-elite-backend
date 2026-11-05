@@ -130,6 +130,20 @@ model Product {
     
     orderEntries order_products[]
     basketItems  BasketItem[]
+    translations ProductTranslation[]
+}
+
+// A product's name and description in another language. English is the
+// Product row itself; products without a translation are shown in English.
+model ProductTranslation {
+  productId   String
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locale      String  @db.VarChar(5)
+  name        String  @db.VarChar(200)
+  description String  @default("") @db.VarChar(2000)
+
+  @@id([productId, locale])
+  @@index([locale])
 }
 
 model Basket {

@@ -94,6 +94,15 @@ Both responses also include:
 
 Search results also include each product's `category`.
 
+### Product translations
+
+The `ProductTranslation` table stores a product's name and description in Welsh (`cy`), Irish (`ga`) or French (`fr`). English stays on the `Product` row.
+
+- `GET /api/product-translations?lang=fr` returns `{ "locale": "fr", "translations": { "<productId>": { "name", "description" } } }`. An unsupported `lang` returns 400.
+- `GET /api/search?q=...&lang=fr` matches the English and French names.
+
+`npm run db:seed` loads the translations from [prisma/product_translations.ts](prisma/product_translations.ts). Products without a translation are shown in English.
+
 ## Catalogue architecture
 
 The catalogue uses separate layers so database access and product preparation
