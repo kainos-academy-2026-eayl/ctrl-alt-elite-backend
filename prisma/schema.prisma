@@ -40,6 +40,7 @@ model User {
   profilePhoto Bytes?
   addressLine1 String?  @db.VarChar(200)
   addressLine2 String?  @db.VarChar(200)
+  town         String?  @db.VarChar(60)
   postcode     String?  @db.VarChar(20)
   phoneNumber  String?  @db.VarChar(30)
   role         Role     @default(CUSTOMER)

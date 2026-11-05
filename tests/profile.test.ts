@@ -18,12 +18,14 @@ const secret = 'profile-test-secret-with-at-least-32-bytes';
 const contactFieldLimits = {
   addressLine1: 200,
   addressLine2: 200,
+  town: 60,
   postcode: 20,
   phoneNumber: 30,
 } as const;
 const contactDetails = {
   addressLine1: '12 High Street',
   addressLine2: 'Flat 4',
+  town: 'Belfast',
   postcode: 'SW1A 1AA',
   phoneNumber: '+44 (20) 7946-0958.1',
 };
@@ -48,6 +50,7 @@ function fixture() {
     email: 'private@example.com',
     addressLine1: null as string | null,
     addressLine2: null as string | null,
+    town: null as string | null,
     postcode: null as string | null,
     phoneNumber: null as string | null,
   };
@@ -66,6 +69,7 @@ function fixture() {
         profilePhoto?: Uint8Array | null;
         addressLine1?: string | null;
         addressLine2?: string | null;
+        town?: string | null;
         postcode?: string | null;
         phoneNumber?: string | null;
       };
@@ -172,6 +176,7 @@ test('customers can load only their own public profile without secrets or pictur
     email: 'private@example.com',
     addressLine1: null,
     addressLine2: null,
+    town: null,
     postcode: null,
     phoneNumber: null,
     hasPhoto: false,
