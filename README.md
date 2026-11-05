@@ -591,6 +591,7 @@ database will not let a balance go below zero. Apply the migration with
 | `GET` | `/api/delivery-options` | no | `200`, `{ "deliveryOptions": [...] }` |
 | `GET` | `/api/account` | yes | `200`, `{ "account": { firstName, lastName, email, creditBalancePence } }` |
 | `POST` | `/api/orders` | yes | `201`, `{ "order": { ... }, "creditBalancePence": 45101 }`, plus `Location` header |
+| `GET` | `/api/orders` | yes | `200`, `{ "orders": [...] }`, containing only the signed-in user's orders, newest first |
 | `GET` | `/api/orders/:orderId` | yes | `200`, same shape as `POST`, for the customer's own order only |
 
 "Login" means `Authorization: Bearer <token>` from `POST /api/auth/login`, for

@@ -1,36 +1,17 @@
 import type { Request, Response } from 'express';
-import { normalisePopularLimit } from '../models/popular_products_model';
-import { normaliseSearchTerm } from '../models/product_search_model';
-import type { CatalogService } from '../service/catalog_service';
+import type { OrderHistoryService } from '../service/order_histroy_service';
 
-export function createCatalogController(service: CatalogService) {
+export function createOrderHistoryController(service: OrderHistoryService) {
   return {
     getAll: async (_req: Request, res: Response) => {
-      const products = await service.getAll();
-      res.status(200).json({ products });
-    },
-    search: async (req: Request, res: Response) => {
-      const searchTerm = normaliseSearchTerm(req.query.q);
-      const result = await service.search(searchTerm);
-      res.status(200).json({ searchTerm, ...result });
-    },
-    getPopular: async (req: Request, res: Response) => {
-      const limit = normalisePopularLimit(req.query.limit);
-      const products = await service.getPopular(limit);
-      res.status(200).json({ products });
-    },
-    getById: async (req: Request, res: Response) => {
-      const id = req.params.id;
-      if (typeof id !== 'string') {
-        res.status(404).json({ message: 'Product not found.' });
+      const customerId: unknown = res.locals.userId;
+      if (typeof customerId !== 'string') {
+        res.status(401).json({ message: 'Authentication required.' });
         return;
       }
-      const product = await service.getById(id);
-      if (!product) {
-        res.status(404).json({ message: 'Product not found.' });
-        return;
-      }
-      res.status(200).json({ product });
+
+      const orders = await service.getAll(customerId);
+      res.status(200).json({ orders });
     },
   };
 }

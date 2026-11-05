@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Prisma, } from '../generated/prisma/client';
+import type { Prisma, PrismaClient } from '../generated/prisma/client';
 
 const orderItemSchema = z.strictObject({
   productId: z.string().uuid(),
@@ -22,6 +22,8 @@ export const orderSelect = {
   id: true,
   customerId: true,
   createdAt: true,
+  order_total: true,
+  order_status: true,
   products: {
     select: {
       product_id: true,
@@ -34,17 +36,4 @@ export type Order = Prisma.orderGetPayload<{
   select: typeof orderSelect;
 }>;
 
-
-export type orderDatabase = {
-  product: {
-    findMany(args: {
-      orderBy: { id: 'asc' };
-      select: typeof orderSelect;
-    }): PromiseLike<Order[]>;
-    findUnique(args: {
-      where: { id: string };
-      select: typeof orderSelect;
-    }): PromiseLike<Order | null>;
-  };
-} 
-
+export type orderDatabase = Pick<PrismaClient, 'order'>;

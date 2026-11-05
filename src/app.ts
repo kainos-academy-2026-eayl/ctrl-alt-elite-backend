@@ -15,6 +15,7 @@ import { createAdminProductRouter } from './routes/admin_product_routes';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import { createInventoryRouter } from './routes/inventory_routes';
+import { createOrderHistoryRouter } from './routes/order_histroy_routes';
 import { createOrderRouter } from './routes/order_routes';
 import { createProfileRouter } from './routes/profile_routes';
 import {
@@ -96,6 +97,7 @@ export function createApp(
     createProfileRouter(database, requireAuthenticatedUser),
   );
 
+  app.use('/api', createOrderHistoryRouter(database, requireUser));
   app.use('/api', createOrderRouter(database, requireUser));
 
   app.use(
