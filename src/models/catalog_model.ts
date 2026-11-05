@@ -10,6 +10,7 @@ export const productSelect = {
   stock: true,
   outOfStock: true,
   image: true,
+  createdAt: true,
 } as const satisfies Prisma.ProductSelect;
 
 export type CatalogProduct = Prisma.ProductGetPayload<{

@@ -37,9 +37,11 @@ Start the frontend with `npm run dev` in its own repository, then open
 `http://localhost:8080/products`. The frontend server fetches the real backend;
 both processes must be running.
 
-`GET http://localhost:3001/api/products` returns `{ "products": [...] }`.
+`GET http://localhost:3001/api/products` returns
+`{ "products": [...], "facets": {...}, "appliedFilters": {...} }` (see
+[Filtering and sorting products](#filtering-and-sorting-products)).
 Each product has `id`, `name`, `category`, `description`, numeric `price`, `stock`,
-and an `image` string. Images stored in the database can be PNG, JPEG or WebP
+`createdAt` and an `image` string. Images stored in the database can be PNG, JPEG or WebP
 bytes, or SVG documents beginning with `<svg`. The API detects binary formats
 from their file signatures, not filenames, and returns a base64 data URL with
 the matching `image/png`, `image/jpeg`, `image/webp` or `image/svg+xml` media type
@@ -62,6 +64,35 @@ ranked by total units ordered. If too few products have been ordered, the
 remaining slots are filled with the newest in-stock products. `limit` defaults
 to 6 and is capped at 20; a missing or invalid value uses the default. It is
 served by the catalogue controller, service and repository.
+
+### Filtering and sorting products
+
+`GET /api/products` and `GET /api/products/search?q=...` both accept these
+optional query parameters, which can be combined
+([src/models/product_filter_model.ts](src/models/product_filter_model.ts)):
+
+| Parameter | Example | Meaning |
+| --- | --- | --- |
+| `stock` | `stock=in`, `stock=out` | In-stock and/or out-of-stock products. Both, or neither, shows everything. |
+| `category` | `category=Bags&category=Footwear` | Products in any of these categories (repeat for several). |
+| `minPrice`, `maxPrice` | `minPrice=10&maxPrice=25` | Price range in pounds, inclusive. A reversed range is swapped. |
+| `sort` | `sort=price-asc` | `recommended` (default), `price-asc`, `price-desc`, `newest`, `oldest`, `most-bought`, `name-asc` or `name-desc`. |
+
+Bad values are ignored rather than rejected, like the search term.
+`recommended` keeps the existing order (name order, or search relevance) with
+in-stock products first. `most-bought` ranks by total units ordered, then name.
+
+Both responses also include:
+
+- `facets`: the options for the products that matched before filtering:
+  `total`, `categories` (`[{ "name", "count" }]`), `stock` (`{ "in", "out" }`)
+  and `priceRange` (`{ "min", "max" }` in pounds, or `null`). Each count
+  respects the other active filters but not its own, so it shows what ticking
+  that option would add.
+- `appliedFilters`: the filters that were actually used, after cleaning:
+  `{ "stock", "categories", "minPrice", "maxPrice", "sort" }`.
+
+Search results also include each product's `category`.
 
 ## Catalogue architecture
 
