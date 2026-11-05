@@ -514,7 +514,10 @@ test('search passes wildcard and quote characters through as literal text', asyn
   const where = findManyArgs(order).where as {
     OR: { AND: { OR: { first_name: { contains: string } }[] }[] }[];
   };
-  assert.equal(where.OR[0]?.AND[0]?.OR[0]?.first_name.contains, '100%_\'"\\');
+  assert.equal(
+    where.OR[0]?.AND[0]?.OR[0]?.first_name.contains,
+    '100\\%\\_\'"\\\\',
+  );
   // Not hex, so it is never treated as an order id prefix.
   assert.equal(where.OR.length, 1);
 });

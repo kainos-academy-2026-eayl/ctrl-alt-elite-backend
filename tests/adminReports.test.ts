@@ -15,7 +15,7 @@ interface Fixtures {
     productId: string;
     name: string;
     unitsSold: bigint;
-    revenuePence: bigint;
+    revenuePence: bigint | null;
   }[];
 }
 
@@ -28,6 +28,7 @@ async function fixture({
   const state = { role: 'ADMIN' };
   const sql: string[] = [];
   const params: unknown[][] = [];
+  const transactionOptions: unknown[] = [];
   const order = {
     groupBy: mock.fn(async (_args: unknown) => statuses),
   };
@@ -41,17 +42,29 @@ async function fixture({
     params.push(values);
     return text.includes('"order_products"') ? top : daily;
   });
-  const database = {
-    user: { findUnique: async () => ({ role: state.role }) },
+  const tx = {
     order,
     order_products: orderProducts,
     $queryRaw: queryRaw,
+  };
+  const database = {
+    user: { findUnique: async () => ({ role: state.role }) },
+    $transaction: mock.fn(
+      async (
+        run: (transaction: typeof tx) => Promise<unknown>,
+        options: unknown,
+      ) => {
+        transactionOptions.push(options);
+        return run(tx);
+      },
+    ),
   } as unknown as PrismaClient;
   const { issueToken } = createAuthorization(database, secret);
   return {
     state,
     sql,
     params,
+    transactionOptions,
     order,
     orderProducts,
     app: createApp(database, 'http://localhost:5500', secret),
@@ -169,12 +182,22 @@ test('the range is inclusive in UTC and every query uses the same bounds', async
     gte: start,
     lt: endExclusive,
   });
+
   for (const values of params) {
     assert.deepEqual(values, [
       '2026-11-01 00:00:00.000',
       '2026-11-06 00:00:00.000',
     ]);
   }
+});
+
+test('all report queries use a repeatable-read transaction', async () => {
+  const { app, transactionOptions, token } = await fixture();
+  await request(app)
+    .get(`${sales}?from=2026-11-01&to=2026-11-05`)
+    .auth(token, { type: 'bearer' });
+
+  assert.deepEqual(transactionOptions, [{ isolationLevel: 'RepeatableRead' }]);
 });
 
 test('cancelled orders are excluded from revenue, units and top products but not ordersByStatus', async () => {
@@ -280,7 +303,35 @@ test('the top products query is limited to 10 and ordered by revenue', async () 
     .auth(token, { type: 'bearer' });
   const top = sql.find((text) => text.includes('"order_products"')) ?? '';
   assert.match(top, /ORDER BY "revenuePence" DESC/);
+  assert.match(top, /DESC NULLS LAST/);
+  assert.match(top, /BOOL_OR\(o\."delivery_option" IS NULL\) THEN NULL/);
   assert.match(top, /LIMIT 10/);
+});
+
+test('migrated legacy order prices are reported as unknown', async () => {
+  const { app, token } = await fixture({
+    top: [
+      {
+        productId: 'legacy-product',
+        name: 'Legacy Product',
+        unitsSold: 2n,
+        revenuePence: null,
+      },
+    ],
+  });
+  const response = await request(app)
+    .get(`${sales}?from=2026-11-01&to=2026-11-05`)
+    .auth(token, { type: 'bearer' });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body.topProducts, [
+    {
+      productId: 'legacy-product',
+      name: 'Legacy Product',
+      unitsSold: 2,
+      revenuePence: null,
+    },
+  ]);
 });
 
 test('leap days are real dates and other February 29ths are not', async () => {

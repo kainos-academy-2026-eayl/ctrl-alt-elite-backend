@@ -144,7 +144,8 @@ function toIdPrefix(term: string): string | null {
 }
 
 function matchesWord(word: string): Prisma.orderWhereInput {
-  const like = { contains: word, mode: 'insensitive' as const };
+  const escapedWord = word.replace(/[\\%_]/g, '\\$&');
+  const like = { contains: escapedWord, mode: 'insensitive' as const };
   return {
     OR: [
       { first_name: like },

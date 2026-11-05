@@ -44,7 +44,8 @@ export function createAdminReportService(repository: AdminReportRepository) {
           productId: row.productId,
           name: row.name,
           unitsSold: Number(row.unitsSold),
-          revenuePence: Number(row.revenuePence),
+          revenuePence:
+            row.revenuePence === null ? null : Number(row.revenuePence),
         })),
       };
     },
