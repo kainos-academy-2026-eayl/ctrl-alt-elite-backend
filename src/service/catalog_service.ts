@@ -12,6 +12,10 @@ import {
 } from '../models/product_filter_model';
 import { detectImageType } from '../models/product_image';
 import { findProducts } from '../models/product_search_model';
+import type {
+  ProductTranslations,
+  TranslationLocale,
+} from '../models/product_translation_model';
 import type { CatalogRepository } from '../repo/catalog_repository';
 
 /** The product shape the frontend's search page expects. */
@@ -83,7 +87,38 @@ function toPopularProduct(product: PopularProduct): PopularProductDto {
   };
 }
 
-export function createCatalogService(repository: CatalogRepository) {
+export function createCatalogService(
+  repository: CatalogRepository,
+  findTranslations?: (
+    locale: TranslationLocale,
+  ) => Promise<ProductTranslations>,
+) {
+  /**
+   * Matches a search term against English names and, for another language,
+   * the translated names too, so "chaussures" finds the right products.
+   */
+  async function matchProducts(
+    searchTerm: string,
+    locale: TranslationLocale | null,
+  ) {
+    const products = await repository.findAll();
+    const translations =
+      locale && findTranslations ? await findTranslations(locale) : null;
+    if (!translations || translations.size === 0) {
+      return findProducts(products, searchTerm);
+    }
+    const searchable = products.map((product) => ({
+      product,
+      category: product.category,
+      name: `${product.name} ${translations.get(product.id)?.name ?? ''}`,
+    }));
+    const result = findProducts(searchable, searchTerm);
+    return {
+      products: result.products.map(({ product }) => product),
+      isClosestMatch: result.isClosestMatch,
+    };
+  }
+
   /** Filters and sorts products that are already in their recommended order. */
   async function applyFilters(
     products: CatalogProduct[],
@@ -122,11 +157,12 @@ export function createCatalogService(repository: CatalogRepository) {
     async search(
       searchTerm: string,
       filters: ProductFilters = DEFAULT_FILTERS,
+      locale: TranslationLocale | null = null,
     ): Promise<ProductSearchResultDto> {
       const matches =
         searchTerm === ''
           ? { products: [], isClosestMatch: false }
-          : findProducts(await repository.findAll(), searchTerm);
+          : await matchProducts(searchTerm, locale);
       const result = await applyFilters(matches.products, filters);
       return {
         ...result,
