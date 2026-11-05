@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 import { errors, jwtVerify, SignJWT } from 'jose';
 import type { PrismaClient } from '../generated/prisma/client';
-import type { UserRole } from '../models/login_model';
+import { supportedRoles, type UserRole } from '../models/login_model';
 
 const issuer = 'ctrl-alt-elite-backend';
 const audience = 'ctrl-alt-elite-api';
@@ -87,16 +87,36 @@ export function createAuthorization(database: PrismaClient, secret: string) {
 
   return {
     issueToken,
+    requireAuthenticatedUser: requireRole(
+      supportedRoles,
+      'Profile',
+      'Authenticated user',
+    ),
     requireAdmin: requireRole(['ADMIN'], 'Admin', 'Administrator'),
     requireStaff: requireRole(
       ['ADMIN', 'CUSTOMER_SERVICE'],
       'Staff',
       'Administrator or customer service',
     ),
+    requireInventory: requireRole(
+      ['ADMIN', 'INVENTORY_MANAGEMENT'],
+      'Inventory',
+      'Administrator or inventory management',
+    ),
+    requireAnyStaff: requireRole(
+      ['ADMIN', 'CUSTOMER_SERVICE', 'INVENTORY_MANAGEMENT'],
+      'Staff',
+      'Staff',
+    ),
     requireTicketUser: requireRole(
       ['CUSTOMER', 'ADMIN'],
       'Support ticket',
       'Customer or administrator',
+    ),
+    requireUser: requireRole(
+      ['CUSTOMER', 'ADMIN', 'CUSTOMER_SERVICE'],
+      'Account',
+      'Signed-in user',
     ),
   };
 }

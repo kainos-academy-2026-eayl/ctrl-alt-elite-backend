@@ -47,6 +47,7 @@ export interface FilterableProduct {
   name: string;
   price: number;
   stock: number;
+  outOfStock: boolean;
   createdAt: Date;
 }
 
@@ -141,10 +142,14 @@ function poundsText(pence: number): string {
   return (pence / 100).toFixed(2);
 }
 
+function isInStock(product: FilterableProduct): boolean {
+  return product.stock > 0 && !product.outOfStock;
+}
+
 function matchesStock(product: FilterableProduct, filters: ProductFilters) {
   // Ticking both boxes, or neither, shows everything.
   if (filters.stock.length !== 1) return true;
-  return filters.stock[0] === 'in' ? product.stock > 0 : product.stock <= 0;
+  return filters.stock[0] === 'in' ? isInStock(product) : !isInStock(product);
 }
 
 function matchesCategory(product: FilterableProduct, filters: ProductFilters) {
@@ -177,7 +182,7 @@ export function sortProducts<T extends FilterableProduct>(
 ): T[] {
   const sorted = [...products];
   const compare: Record<SortOption, (a: T, b: T) => number> = {
-    recommended: (a, b) => Number(b.stock > 0) - Number(a.stock > 0),
+    recommended: (a, b) => Number(isInStock(b)) - Number(isInStock(a)),
     'price-asc': (a, b) => toPence(a.price) - toPence(b.price) || byName(a, b),
     'price-desc': (a, b) => toPence(b.price) - toPence(a.price) || byName(a, b),
     newest: (a, b) =>
@@ -224,7 +229,7 @@ export function buildFacets(
   const stock = { in: 0, out: 0 };
   for (const product of products) {
     if (matchesCategory(product, filters) && matchesPrice(product, filters)) {
-      stock[product.stock > 0 ? 'in' : 'out'] += 1;
+      stock[isInStock(product) ? 'in' : 'out'] += 1;
     }
   }
 

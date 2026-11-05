@@ -11,7 +11,6 @@ import {
   normaliseSearchTerm,
 } from '../src/models/product_search_model';
 import { createCatalogService } from '../src/service/catalog_service';
-import { noPopular } from './support/popularStubs';
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p94AAAAASUVORK5CYII=',
@@ -31,6 +30,7 @@ function product(
     description: `${name} description`,
     price: 10,
     stock: 5,
+    outOfStock: false,
     image: Uint8Array.from(PNG),
     createdAt: new Date('2026-10-22T10:00:00Z'),
     ...overrides,
@@ -68,6 +68,17 @@ const NO_MATCHES = {
 
 const namesFor = (term: string) =>
   findProducts(CATALOGUE, term).products.map(({ name }) => name);
+
+function searchRepository(findAll: () => Promise<CatalogProduct[]>) {
+  return {
+    findAll,
+    findById: async () => null,
+    findUnitsSold: async () => new Map<string, number>(),
+    findTopSellingIds: async () => [],
+    findInStockByIds: async () => [],
+    findNewestInStock: async () => [],
+  };
+}
 
 describe('normaliseSearchTerm', () => {
   test('trims the term and caps its length', () => {
@@ -130,11 +141,7 @@ describe('findProducts', () => {
 });
 
 describe('catalog service search', () => {
-  const service = createCatalogService({
-    ...noPopular,
-    findAll: async () => CATALOGUE,
-    findById: async () => null,
-  });
+  const service = createCatalogService(searchRepository(async () => CATALOGUE));
 
   test('returns products in the shape the frontend search page expects', async () => {
     const result = await service.search('hoodie');
@@ -169,16 +176,27 @@ describe('catalog service search', () => {
     assert.equal(hair?.isInStock, false);
   });
 
+  test('reports explicitly out-of-stock products with positive stock as unavailable', async () => {
+    const outOfStockService = createCatalogService(
+      searchRepository(async () => [
+        product('out-of-stock', 'Out of Stock', 'Test', {
+          stock: 5,
+          outOfStock: true,
+        }),
+      ]),
+    );
+    const [item] = (await outOfStockService.search('out of stock')).products;
+    assert.equal(item?.isInStock, false);
+  });
+
   test('does not load the catalogue for an empty search', async () => {
     let loads = 0;
-    const counting = createCatalogService({
-      ...noPopular,
-      findAll: async () => {
+    const counting = createCatalogService(
+      searchRepository(async () => {
         loads += 1;
         return CATALOGUE;
-      },
-      findById: async () => null,
-    });
+      }),
+    );
     assert.deepEqual(await counting.search(''), NO_MATCHES);
     assert.equal(loads, 0);
   });

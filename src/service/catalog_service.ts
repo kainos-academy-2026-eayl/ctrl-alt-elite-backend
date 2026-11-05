@@ -70,7 +70,7 @@ function toSearchItem(product: CatalogProduct): ProductSearchItemDto {
     price: product.price.toFixed(2),
     keywords: [product.category],
     category: product.category,
-    isInStock: product.stock > 0,
+    isInStock: product.stock > 0 && !product.outOfStock,
   };
 }
 

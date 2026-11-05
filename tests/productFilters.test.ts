@@ -37,6 +37,7 @@ function product(
     description: `${name} description`,
     price,
     stock,
+    outOfStock: false,
     image: Uint8Array.from(PNG),
     createdAt: new Date(createdAt),
   };
@@ -133,6 +134,31 @@ describe('filterProducts', () => {
       ),
       ['cap', 'trainers'],
     );
+  });
+
+  test('respects explicit out-of-stock status in filters, facets and recommended order', () => {
+    const products = CATALOGUE.map((item) =>
+      item.id === 'cap' ? { ...item, outOfStock: true } : item,
+    );
+    assert.deepEqual(
+      ids(filterProducts(products, filters({ stock: ['in'] }))),
+      ['hoodie', 'trainers'],
+    );
+    assert.deepEqual(
+      ids(filterProducts(products, filters({ stock: ['out'] }))),
+      ['cap', 'boots', 'beanie'],
+    );
+    assert.deepEqual(buildFacets(products, DEFAULT_FILTERS).stock, {
+      in: 2,
+      out: 3,
+    });
+    assert.deepEqual(ids(sortProducts(products, 'recommended')), [
+      'hoodie',
+      'trainers',
+      'cap',
+      'boots',
+      'beanie',
+    ]);
   });
 });
 
