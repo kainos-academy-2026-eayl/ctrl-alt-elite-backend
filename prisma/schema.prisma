@@ -99,6 +99,9 @@ model order {
     delivery_price_pence Int     @default(0)
     
     products     order_products[]
+
+    @@index([createdAt, id])
+    @@index([order_status, createdAt])
 }
 
 model order_products {

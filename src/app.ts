@@ -11,7 +11,9 @@ import { createAuthorization } from './middleware/authorization_middleware';
 import { ErrorHandler } from './middleware/error_handler_middleware';
 import { noStore } from './middleware/no_store';
 import { BasketRepository } from './repo/basket_repository';
+import { createAdminOrderRouter } from './routes/admin_order_routes';
 import { createAdminProductRouter } from './routes/admin_product_routes';
+import { createAdminReportRouter } from './routes/admin_report_routes';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import { createInventoryRouter } from './routes/inventory_routes';
@@ -226,6 +228,21 @@ export function createApp(
 
   app.use('/api/admin/customers', requireStaff, customers);
   app.use('/api/customers', requireStaff, customers);
+
+  // Orders are readable by customer service; these mounts must stay above the
+  // blanket ADMIN guard below. Reports are ADMIN only.
+  app.use(
+    '/api/admin/orders',
+    noStore,
+    requireStaff,
+    createAdminOrderRouter(database),
+  );
+  app.use(
+    '/api/admin/reports',
+    noStore,
+    requireAdmin,
+    createAdminReportRouter(database),
+  );
 
   app.use('/api/admin', requireAdmin);
 
