@@ -1,0 +1,5 @@
+ALTER TABLE "User"
+ADD COLUMN "addressLine1" VARCHAR(200),
+ADD COLUMN "addressLine2" VARCHAR(200),
+ADD COLUMN "postcode" VARCHAR(20),
+ADD COLUMN "phoneNumber" VARCHAR(30);

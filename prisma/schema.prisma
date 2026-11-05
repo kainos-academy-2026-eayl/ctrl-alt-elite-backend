@@ -36,6 +36,12 @@ model User {
   lastName     String   @db.VarChar(100)
   email        String   @unique @db.VarChar(254)
   passwordHash String
+  username     String?  @unique @db.VarChar(30)
+  profilePhoto Bytes?
+  addressLine1 String?  @db.VarChar(200)
+  addressLine2 String?  @db.VarChar(200)
+  postcode     String?  @db.VarChar(20)
+  phoneNumber  String?  @db.VarChar(30)
   role         Role     @default(CUSTOMER)
   // Spent at checkout. Every account starts with £500.00.
   creditBalancePence Int @default(50000)

@@ -16,6 +16,7 @@ import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import { createInventoryRouter } from './routes/inventory_routes';
 import { createOrderRouter } from './routes/order_routes';
+import { createProfileRouter } from './routes/profile_routes';
 import {
   createAdminSupportTicketRouter,
   createSupportTicketRouter,
@@ -63,9 +64,10 @@ export function createApp(
     issueToken,
     requireAdmin,
     requireStaff,
+    requireTicketUser,
+    requireAuthenticatedUser,
     requireAnyStaff,
     requireInventory,
-    requireTicketUser,
     requireUser,
   } = createAuthorization(database, jwtSecret);
   const app = express();
@@ -89,6 +91,10 @@ export function createApp(
   });
 
   app.use('/api', createCatalogRouter(database));
+  app.use(
+    '/api/profile',
+    createProfileRouter(database, requireAuthenticatedUser),
+  );
 
   app.use('/api', createOrderRouter(database, requireUser));
 
