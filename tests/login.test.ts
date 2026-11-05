@@ -19,7 +19,12 @@ function databaseReturning(user: Record<string, unknown> | null) {
 
 const credentials = { email: ' Admin@Company.com ', password };
 
-for (const role of ['CUSTOMER', 'ADMIN', 'CUSTOMER_SERVICE']) {
+for (const role of [
+  'CUSTOMER',
+  'ADMIN',
+  'CUSTOMER_SERVICE',
+  'INVENTORY_MANAGEMENT',
+]) {
   test(`returns the user id, name, email and ${role} role on success`, async () => {
     const database = databaseReturning({
       id: 'user-1',

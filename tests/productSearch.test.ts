@@ -30,7 +30,9 @@ function product(
     description: `${name} description`,
     price: 10,
     stock: 5,
+    outOfStock: false,
     image: Uint8Array.from(PNG),
+    createdAt: new Date('2026-10-22T10:00:00Z'),
     ...overrides,
   };
 }
@@ -45,8 +47,38 @@ const CATALOGUE: CatalogProduct[] = [
   product('jeans', 'Swaggy Jeans', 'Jeans', { price: 24.99 }),
 ];
 
+const NO_FILTERS = {
+  stock: [],
+  categories: [],
+  minPrice: null,
+  maxPrice: null,
+  sort: 'recommended',
+};
+const NO_MATCHES = {
+  products: [],
+  isClosestMatch: false,
+  facets: {
+    total: 0,
+    categories: [],
+    stock: { in: 0, out: 0 },
+    priceRange: null,
+  },
+  appliedFilters: NO_FILTERS,
+};
+
 const namesFor = (term: string) =>
   findProducts(CATALOGUE, term).products.map(({ name }) => name);
+
+function searchRepository(findAll: () => Promise<CatalogProduct[]>) {
+  return {
+    findAll,
+    findById: async () => null,
+    findUnitsSold: async () => new Map<string, number>(),
+    findTopSellingIds: async () => [],
+    findInStockByIds: async () => [],
+    findNewestInStock: async () => [],
+  };
+}
 
 describe('normaliseSearchTerm', () => {
   test('trims the term and caps its length', () => {
@@ -109,10 +141,7 @@ describe('findProducts', () => {
 });
 
 describe('catalog service search', () => {
-  const service = createCatalogService({
-    findAll: async () => CATALOGUE,
-    findById: async () => null,
-  });
+  const service = createCatalogService(searchRepository(async () => CATALOGUE));
 
   test('returns products in the shape the frontend search page expects', async () => {
     const result = await service.search('hoodie');
@@ -125,10 +154,18 @@ describe('catalog service search', () => {
           imageUrl: `data:image/png;base64,${PNG.toString('base64')}`,
           price: '8.99',
           keywords: ['Hoodie'],
+          category: 'Hoodie',
           isInStock: true,
         },
       ],
       isClosestMatch: false,
+      facets: {
+        total: 1,
+        categories: [{ name: 'Hoodie', count: 1 }],
+        stock: { in: 1, out: 0 },
+        priceRange: { min: '8.99', max: '8.99' },
+      },
+      appliedFilters: NO_FILTERS,
     });
   });
 
@@ -139,19 +176,28 @@ describe('catalog service search', () => {
     assert.equal(hair?.isInStock, false);
   });
 
+  test('reports explicitly out-of-stock products with positive stock as unavailable', async () => {
+    const outOfStockService = createCatalogService(
+      searchRepository(async () => [
+        product('out-of-stock', 'Out of Stock', 'Test', {
+          stock: 5,
+          outOfStock: true,
+        }),
+      ]),
+    );
+    const [item] = (await outOfStockService.search('out of stock')).products;
+    assert.equal(item?.isInStock, false);
+  });
+
   test('does not load the catalogue for an empty search', async () => {
     let loads = 0;
-    const counting = createCatalogService({
-      findAll: async () => {
+    const counting = createCatalogService(
+      searchRepository(async () => {
         loads += 1;
         return CATALOGUE;
-      },
-      findById: async () => null,
-    });
-    assert.deepEqual(await counting.search(''), {
-      products: [],
-      isClosestMatch: false,
-    });
+      }),
+    );
+    assert.deepEqual(await counting.search(''), NO_MATCHES);
     assert.equal(loads, 0);
   });
 });
@@ -204,11 +250,7 @@ describe('GET /api/products/search', () => {
     await withServer(async (baseUrl) => {
       const res = await fetch(`${baseUrl}/api/products/search`);
       assert.equal(res.status, 200);
-      assert.deepEqual(await res.json(), {
-        searchTerm: '',
-        products: [],
-        isClosestMatch: false,
-      });
+      assert.deepEqual(await res.json(), { searchTerm: '', ...NO_MATCHES });
     });
   });
 });
