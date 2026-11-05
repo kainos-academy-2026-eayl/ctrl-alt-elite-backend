@@ -13,6 +13,7 @@ import {
   parseProductFilters,
   SORT_OPTIONS,
   sortProducts,
+  toAppliedFilters,
 } from '../src/models/product_filter_model';
 import { createCatalogService } from '../src/service/catalog_service';
 import { noPopular } from './support/popularStubs';
@@ -71,8 +72,8 @@ describe('parseProductFilters', () => {
       {
         stock: ['in', 'out'],
         categories: ['Footwear', 'Accessories'],
-        minPricePence: 1000,
-        maxPricePence: 2550,
+        minPricePence: 1000n,
+        maxPricePence: 2550n,
         sort: 'price-desc',
       },
     );
@@ -98,8 +99,8 @@ describe('parseProductFilters', () => {
 
   test('swaps a reversed price range', () => {
     const parsed = parseProductFilters({ minPrice: '50', maxPrice: '10' });
-    assert.equal(parsed.minPricePence, 1000);
-    assert.equal(parsed.maxPricePence, 5000);
+    assert.equal(parsed.minPricePence, 1000n);
+    assert.equal(parsed.maxPricePence, 5000n);
   });
 });
 
@@ -127,8 +128,8 @@ describe('filterProducts', () => {
           filters({
             categories: ['Accessories', 'Footwear'],
             stock: ['in'],
-            minPricePence: 1000,
-            maxPricePence: 6499,
+            minPricePence: 1000n,
+            maxPricePence: 6499n,
           }),
         ),
       ),
@@ -214,7 +215,7 @@ describe('buildFacets', () => {
     assert.deepEqual(facets.priceRange, { min: '7.50', max: '89.00' });
   });
 
-  test('keeps very large prices exact in the price range', () => {
+  test('round-trips very large prices from facets to applied filters', () => {
     const hair = product(
       'hair',
       "Lee's Hair",
@@ -223,9 +224,22 @@ describe('buildFacets', () => {
       0,
       '2026-10-01',
     );
-    assert.deepEqual(buildFacets([hair], DEFAULT_FILTERS).priceRange, {
+    const { priceRange } = buildFacets([hair], DEFAULT_FILTERS);
+    assert.deepEqual(priceRange, {
       min: '828938392829282.00',
       max: '828938392829282.00',
+    });
+    const parsed = parseProductFilters({
+      minPrice: priceRange?.min,
+      maxPrice: priceRange?.max,
+    });
+    assert.deepEqual(filterProducts([hair], parsed), [hair]);
+    assert.deepEqual(toAppliedFilters(parsed), {
+      stock: [],
+      categories: [],
+      minPrice: '828938392829282.00',
+      maxPrice: '828938392829282.00',
+      sort: 'recommended',
     });
   });
 
@@ -278,11 +292,9 @@ describe('GET /api/products and /api/products/search with filters', () => {
         findUnique: async () => null,
       },
       order_products: {
-        groupBy: async () => [],
-        findMany: async () => [
-          { product_id: 'cap', amount: 3 },
-          { product_id: 'cap', amount: 4 },
-          { product_id: 'boots', amount: 5 },
+        groupBy: async () => [
+          { product_id: 'cap', _sum: { amount: 7 } },
+          { product_id: 'boots', _sum: { amount: 5 } },
         ],
       },
     };

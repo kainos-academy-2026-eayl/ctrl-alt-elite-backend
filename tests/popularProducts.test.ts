@@ -63,11 +63,11 @@ describe('normalisePopularLimit', () => {
 describe('popular products repository', () => {
   test('ranks in-stock products by total units ordered', async () => {
     const groupBy = mock.fn(async () => [
-      { product_id: 'b' },
-      { product_id: 'a' },
+      { product_id: 'b', _sum: { amount: 10 } },
+      { product_id: 'a', _sum: { amount: 5 } },
     ]);
     const repository = createCatalogRepository({
-      order_products: { groupBy, findMany: async () => [] },
+      order_products: { groupBy },
       product: { findMany: async () => [], findUnique: async () => null },
     });
 
@@ -86,7 +86,7 @@ describe('popular products repository', () => {
   test('loads in-stock products by ID and newest in-stock products', async () => {
     const findMany = mock.fn(async () => []);
     const repository = createCatalogRepository({
-      order_products: { groupBy: async () => [], findMany: async () => [] },
+      order_products: { groupBy: async () => [] },
       product: { findMany, findUnique: async () => null },
     });
 
@@ -191,7 +191,7 @@ describe('GET /api/products/popular', () => {
       order_products: {
         groupBy: async ({ take }: { take: number }) => {
           takes.push(take);
-          return [{ product_id: 'a' }];
+          return [{ product_id: 'a', _sum: { amount: 5 } }];
         },
       },
       product: {

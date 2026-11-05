@@ -70,6 +70,35 @@ test('repository preserves empty lists and missing products', async () => {
   assert.equal(await repository.findById('missing'), null);
 });
 
+test('repository aggregates units sold by product in the database', async () => {
+  const groupBy = mock.fn(async () => [
+    { product_id: 'product-123', _sum: { amount: 7 } },
+    { product_id: 'product-456', _sum: { amount: null } },
+  ]);
+  const repository = createCatalogRepository({
+    order_products: { groupBy },
+    product: {
+      findMany: async () => [],
+      findUnique: async () => null,
+    },
+  });
+
+  assert.deepEqual(
+    [...(await repository.findUnitsSold())],
+    [
+      ['product-123', 7],
+      ['product-456', 0],
+    ],
+  );
+  assert.deepEqual(groupBy.mock.calls[0]?.arguments, [
+    {
+      by: ['product_id'],
+      _sum: { amount: true },
+      orderBy: { product_id: 'asc' },
+    },
+  ]);
+});
+
 test('repository propagates database failures from both queries', async () => {
   const failure = new Error('Database unavailable');
   const fail = async () => {

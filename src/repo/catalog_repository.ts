@@ -22,17 +22,14 @@ export function createCatalogRepository(database: CatalogDatabase) {
     },
     /** Units ordered of each product, for sorting by "most bought". */
     async findUnitsSold(): Promise<Map<string, number>> {
-      const lines = await database.order_products.findMany({
-        select: { product_id: true, amount: true },
+      const sales = await database.order_products.groupBy({
+        by: ['product_id'],
+        _sum: { amount: true },
+        orderBy: { product_id: 'asc' },
       });
-      const unitsSold = new Map<string, number>();
-      for (const line of lines) {
-        unitsSold.set(
-          line.product_id,
-          (unitsSold.get(line.product_id) ?? 0) + line.amount,
-        );
-      }
-      return unitsSold;
+      return new Map(
+        sales.map((sale) => [sale.product_id, sale._sum.amount ?? 0]),
+      );
     },
     /** IDs of in-stock products with the most units ordered, best seller first. */
     async findTopSellingIds(limit: number): Promise<string[]> {

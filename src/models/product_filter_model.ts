@@ -29,14 +29,13 @@ export type StockOption = (typeof STOCK_OPTIONS)[number];
 
 const MAX_CATEGORIES = 20;
 const MAX_CATEGORY_LENGTH = 100;
-const MAX_PRICE_PENCE = 100_000_000_00;
 
 export interface ProductFilters {
   stock: StockOption[];
   categories: string[];
   /** Whole pence, or null for no limit. */
-  minPricePence: number | null;
-  maxPricePence: number | null;
+  minPricePence: bigint | null;
+  maxPricePence: bigint | null;
   sort: SortOption;
 }
 
@@ -88,12 +87,12 @@ function values(raw: unknown): string[] {
   return list.filter((value): value is string => typeof value === 'string');
 }
 
-function readPence(raw: unknown): number | null {
+function readPence(raw: unknown): bigint | null {
   const [value] = values(raw);
   const trimmed = value?.trim().replace(/^£/, '') ?? '';
   if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) return null;
-  const pence = Math.round(Number(trimmed) * 100);
-  return pence <= MAX_PRICE_PENCE ? pence : null;
+  const [pounds, pence = ''] = trimmed.split('.');
+  return BigInt(pounds ?? '0') * 100n + BigInt(pence.padEnd(2, '0') || '0');
 }
 
 export function parseProductFilters(
@@ -134,12 +133,19 @@ export function parseProductFilters(
   };
 }
 
-function toPence(pounds: number): number {
-  return Math.round(pounds * 100);
+function toPence(pounds: number): bigint {
+  const [wholePounds, pence = ''] = pounds.toFixed(2).split('.');
+  return BigInt(wholePounds ?? '0') * 100n + BigInt(pence || '0');
 }
 
-function poundsText(pence: number): string {
-  return (pence / 100).toFixed(2);
+function poundsText(pence: bigint): string {
+  return `${pence / 100n}.${(pence % 100n).toString().padStart(2, '0')}`;
+}
+
+function comparePrice(a: FilterableProduct, b: FilterableProduct): number {
+  const aPence = toPence(a.price);
+  const bPence = toPence(b.price);
+  return aPence < bPence ? -1 : aPence > bPence ? 1 : 0;
 }
 
 function isInStock(product: FilterableProduct): boolean {
@@ -183,8 +189,8 @@ export function sortProducts<T extends FilterableProduct>(
   const sorted = [...products];
   const compare: Record<SortOption, (a: T, b: T) => number> = {
     recommended: (a, b) => Number(isInStock(b)) - Number(isInStock(a)),
-    'price-asc': (a, b) => toPence(a.price) - toPence(b.price) || byName(a, b),
-    'price-desc': (a, b) => toPence(b.price) - toPence(a.price) || byName(a, b),
+    'price-asc': (a, b) => comparePrice(a, b) || byName(a, b),
+    'price-desc': (a, b) => comparePrice(b, a) || byName(a, b),
     newest: (a, b) =>
       b.createdAt.getTime() - a.createdAt.getTime() || byName(a, b),
     oldest: (a, b) =>
