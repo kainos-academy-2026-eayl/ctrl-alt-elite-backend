@@ -223,6 +223,25 @@ test('orderSchema rejects unknown fields, duplicates and unknown delivery option
   }
 });
 
+test('orderSchema rejects empty or malformed basket items', () => {
+  for (const items of [
+    [],
+    [{ productId: lampId, quantity: 0 }],
+    [{ productId: lampId, quantity: -1 }],
+    [{ productId: lampId, quantity: 1.5 }],
+    [{ productId: lampId }],
+    [{ quantity: 2 }],
+    [{ productId: 123, quantity: 2 }],
+    [{ productId: 'not-a-uuid', quantity: 2 }],
+  ]) {
+    assert.equal(
+      orderSchema.safeParse({ ...validBody, items }).success,
+      false,
+      JSON.stringify(items),
+    );
+  }
+});
+
 test('repository decrements stock in product order, charges credit and saves the order', async () => {
   const tx = fakeTransaction();
   const result = await repositoryWith(tx).create(customerId, input, express);

@@ -507,6 +507,90 @@ node --import tsx --test tests/supportTickets.test.ts
 These tests use signed tokens and mocked Prisma queries, so they don't need
 PostgreSQL. They also run through `npm test`.
 
+## Order API
+
+### Place an order
+
+`POST /api/orders`
+
+Requires a valid login token for an account whose current database role is
+`CUSTOMER`. Administrator and customer-service accounts receive `403`.
+
+Send these headers:
+
+```http
+Authorization: Bearer <login-token>
+Content-Type: application/json
+```
+
+Example request body:
+
+```json
+{
+  "items": [
+    {
+      "productId": "11111111-1111-4111-8111-111111111111",
+      "quantity": 2
+    }
+  ]
+}
+```
+
+Replace the example product ID with an existing product UUID.
+
+Validation rules:
+
+- `items` must be a non-empty array.
+- Each product ID must be a valid UUID.
+- Each quantity must be a positive safe integer.
+- A product may appear only once.
+- Unexpected fields are rejected, including client-supplied prices,
+  totals, customer IDs and order statuses.
+
+The server derives the customer ID from the verified login token and reads
+product prices from the database.
+
+### Success response
+
+Returns `201 Created`:
+
+```json
+{
+  "order": {
+    "id": "22222222-2222-4222-8222-222222222222",
+    "customerId": "33333333-3333-4333-8333-333333333333",
+    "products": [
+      {
+        "product_id": "11111111-1111-4111-8111-111111111111",
+        "amount": 2
+      }
+    ]
+  }
+}
+```
+
+The response uses `amount` for the stored quantity. The current response does
+not include the order total, status or creation time.
+
+### Error responses
+
+| Status | Meaning |
+| --- | --- |
+| 400 | Invalid order input or malformed JSON |
+| 401 | Missing, invalid or expired token, or deleted user |
+| 403 | Authenticated account is not a customer |
+| 404 | One or more products were not found |
+| 409 | Insufficient stock for one or more products |
+| 413 | Request body exceeds the configured size limit |
+| 415 | Content-Type is not application/json |
+| 503 | Recognized database-unavailable failure |
+| 500 | Unexpected failure |
+
+Order validation failures include a `message` and a field-level `errors` array.
+Other listed errors return a `message`. Database-unavailable failures return
+`"Service temporarily unavailable."`; unexpected failures return
+`"Unable to complete the request."` without exposing internal details.
+
 ## Linting
 
 Biome checks code formatting, recommended lint rules, and import ordering. The
@@ -578,6 +662,17 @@ with mocked requests, responses and database calls. They run through `npm test`
 without starting a server. They cover token and role checks, not route wiring
 or end-to-end login flows.
 
+Run the order, authorization and shared error-handler tests together with:
+
+```sh
+node --import tsx --test tests/order.test.ts tests/authorization.test.ts tests/errorHandler.test.ts
+```
+
+These unit tests use mocks rather than PostgreSQL and also run through
+`npm test`. They do not prove real transaction rollback or concurrency safety;
+those checks require separate integration tests against a dedicated test
+database, never a shared development database.
+
 ## Basket API (KAN-28)
 
 Prices and names come from the `Product` table, never from the client. Product
@@ -639,6 +734,7 @@ database will not let a balance go below zero. Apply the migration with
 | `GET` | `/api/delivery-options` | no | `200`, `{ "deliveryOptions": [...] }` |
 | `GET` | `/api/account` | yes | `200`, `{ "account": { firstName, lastName, email, creditBalancePence } }` |
 | `POST` | `/api/orders` | yes | `201`, `{ "order": { ... }, "creditBalancePence": 45101 }`, plus `Location` header |
+| `GET` | `/api/orders` | yes | `200`, `{ "orders": [...] }`, containing only the signed-in user's orders, newest first |
 | `GET` | `/api/orders/:orderId` | yes | `200`, same shape as `POST`, for the customer's own order only |
 
 "Login" means `Authorization: Bearer <token>` from `POST /api/auth/login`, for

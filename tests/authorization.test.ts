@@ -205,3 +205,137 @@ test('requireAdmin propagates database failures to the caller', async () => {
     (error: unknown) => error === failure,
   );
 });
+
+test('requireOrderCustomer permits a customer', async () => {
+  const { state, requireOrderCustomer, issueToken, findUnique } = fixture();
+
+  state.role = 'CUSTOMER';
+  const token = await issueToken('customer-1');
+
+  const { response, next } = await invoke(
+    requireOrderCustomer,
+    `Bearer ${token}`,
+  );
+
+  assert.deepEqual(findUnique.mock.calls[0]?.arguments, [
+    {
+      where: { id: 'customer-1' },
+      select: { role: true },
+    },
+  ]);
+
+  assert.deepEqual(response.locals, {
+    userId: 'customer-1',
+  });
+
+  assert.equal(next.mock.callCount(), 1);
+  assert.equal(response.status.mock.callCount(), 0);
+});
+
+test('requireOrderCustomer rejects non-customer roles', async (context) => {
+  context.mock.method(console, 'warn', () => {});
+
+  for (const role of ['ADMIN', 'CUSTOMER_SERVICE']) {
+    const { state, requireOrderCustomer, issueToken } = fixture();
+
+    state.role = role;
+    const token = await issueToken('user-1');
+
+    const { response, next } = await invoke(
+      requireOrderCustomer,
+      `Bearer ${token}`,
+    );
+
+    assert.deepEqual(response.status.mock.calls[0]?.arguments, [403]);
+
+    assert.deepEqual(response.json.mock.calls[0]?.arguments, [
+      { message: 'Access denied. Customer privileges required.' },
+    ]);
+
+    assert.deepEqual(response.locals, {});
+    assert.equal(next.mock.callCount(), 0);
+  }
+});
+
+test('requireOrderCustomer rejects a customer with invalid token', async (context) => {
+  context.mock.method(console, 'warn', () => {});
+  const { requireOrderCustomer } = fixture();
+
+  const { response, next } = await invoke(
+    requireOrderCustomer,
+    `Bearer invalid-token`,
+  );
+
+  assert.deepEqual(response.status.mock.calls[0]?.arguments, [401]);
+
+  assert.deepEqual(response.json.mock.calls[0]?.arguments, [
+    { message: 'Authentication required.' },
+  ]);
+
+  assert.deepEqual(response.locals, {});
+  assert.equal(next.mock.callCount(), 0);
+});
+
+test('requireOrderCustomer permits a customer but denies admin with the same token', async (context) => {
+  context.mock.method(console, 'warn', () => {});
+
+  const { state, requireOrderCustomer, issueToken, findUnique } = fixture();
+
+  state.role = 'CUSTOMER';
+  const token = await issueToken('customer-1');
+
+  const { response, next } = await invoke(
+    requireOrderCustomer,
+    `Bearer ${token}`,
+  );
+
+  assert.deepEqual(findUnique.mock.calls[0]?.arguments, [
+    {
+      where: { id: 'customer-1' },
+      select: { role: true },
+    },
+  ]);
+
+  assert.deepEqual(response.locals, {
+    userId: 'customer-1',
+  });
+
+  assert.equal(next.mock.callCount(), 1);
+  assert.equal(response.status.mock.callCount(), 0);
+
+  for (const role of ['ADMIN', 'CUSTOMER_SERVICE']) {
+    const { state, requireOrderCustomer, issueToken } = fixture();
+
+    state.role = role;
+    const token = await issueToken('user-1');
+
+    const { response, next } = await invoke(
+      requireOrderCustomer,
+      `Bearer ${token}`,
+    );
+
+    assert.deepEqual(response.status.mock.calls[0]?.arguments, [403]);
+
+    assert.deepEqual(response.json.mock.calls[0]?.arguments, [
+      { message: 'Access denied. Customer privileges required.' },
+    ]);
+
+    assert.deepEqual(response.locals, {});
+    assert.equal(next.mock.callCount(), 0);
+  }
+});
+
+test('requireOrderCustomer propagates database failures', async (context) => {
+  context.mock.method(console, 'warn', () => {});
+  const { requireOrderCustomer, state, issueToken } = fixture();
+
+  const failure = new Error('Database unavailable');
+  state.failure = failure;
+
+  const token = await issueToken('customer-1');
+
+  await assert.rejects(
+    invoke(requireOrderCustomer, `Bearer ${token}`),
+    (error: unknown) => error === failure,
+  );
+});

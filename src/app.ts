@@ -17,6 +17,7 @@ import { createAdminReportRouter } from './routes/admin_report_routes';
 import { createBasketRouter } from './routes/basketRouter';
 import { createCatalogRouter } from './routes/catalog_routes';
 import { createInventoryRouter } from './routes/inventory_routes';
+import { createOrderHistoryRouter } from './routes/order_histroy_routes';
 import { createOrderRouter } from './routes/order_routes';
 import { createProfileRouter } from './routes/profile_routes';
 import {
@@ -98,6 +99,7 @@ export function createApp(
     createProfileRouter(database, requireAuthenticatedUser),
   );
 
+  app.use('/api', createOrderHistoryRouter(database, requireUser));
   app.use('/api', createOrderRouter(database, requireUser));
 
   app.use(
@@ -250,7 +252,6 @@ export function createApp(
     '/api/baskets',
     createBasketRouter(new BasketController(services.basketService)),
   );
-
   const errorHandler = new ErrorHandler();
   app.use(errorHandler.handle);
 
