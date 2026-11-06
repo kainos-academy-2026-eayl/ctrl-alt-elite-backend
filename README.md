@@ -138,6 +138,8 @@ Staff roles and the admin namespace:
 | `GET /api/admin/customers[/:id]` | yes | yes | 403 |
 | `PUT /api/admin/customers/:id[/password]` | yes | 403 | 403 |
 | `/api/admin/support/tickets/**` | yes | yes | 403 |
+| `GET /api/admin/orders[/:id]` | yes | yes | 403 |
+| `GET /api/admin/reports/**` | yes | 403 | 403 |
 | `/api/admin/inventory/**` | yes | 403 | yes |
 | Any other `/api/admin/**` endpoint | yes | 403 | 403 |
 
@@ -163,6 +165,130 @@ for inventory); everything else under `/api/admin` falls through to an
 To add a role (for example Finance), add it to the `Role` enum and
 `supportedRoles`, then add it to the relevant `requireRole` lists in the
 authorization middleware.
+
+## Admin orders and sales reports
+
+All three endpoints send `Cache-Control: no-store`, return `401` for a missing
+or invalid token and `403` for the wrong role, and report validation problems as
+`400` with `{ "message": "..." }`. Money is always integer pence
+(`order.order_total` is stored in pounds and converted with
+`Math.round(order_total * 100)`; line prices come from
+`order_products.unit_price_pence`). Responses never include password hashes or
+other user fields.
+
+| Endpoint | Roles |
+| --- | --- |
+| `GET /api/admin/orders`, `GET /api/admin/orders/:id` | `ADMIN`, `CUSTOMER_SERVICE` |
+| `GET /api/admin/reports/sales` | `ADMIN` only |
+
+### `GET /api/admin/orders`
+
+Optional query parameters (anything invalid returns `400`):
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `search` | up to 200 characters. Case-insensitive match on the customer's first name, last name, "first last", or email (the order's checkout details or the account), or the start of the order id. Dashes in the id are ignored, so the 8 characters shown in the UI (for example `6C0D342D`) work. | none |
+| `status` | `PENDING`, `PROCESSING`, `SHIPPED`, `DELIVERED`, `CANCELLED` | all |
+| `sort` | `newest`, `oldest`, `totalDesc`, `totalAsc` (ties broken by id so paging is stable) | `newest` |
+| `page` | integer >= 1 | `1` |
+| `pageSize` | integer 1 to 100 | `10` |
+
+```json
+{
+  "orders": [
+    {
+      "id": "6c0d342d-3f30-475d-8a13-2742cf09c105",
+      "customerName": "Sam Jones",
+      "customerEmail": "sam@example.com",
+      "status": "PENDING",
+      "totalPence": 6047,
+      "itemCount": 3,
+      "createdAt": "2026-11-04T10:00:00.000Z"
+    }
+  ],
+  "page": 1,
+  "pageSize": 10,
+  "total": 1,
+  "totalPages": 1
+}
+```
+
+`itemCount` is the sum of the line quantities. `total` is the count after
+filters and `totalPages` is `ceil(total / pageSize)` (`0` when there are no
+matches). A page past the end returns an empty `orders` array with `total` and
+`totalPages` still correct.
+
+### `GET /api/admin/orders/:id`
+
+Returns `400` if `:id` is not a UUID and `404` if the order does not exist.
+
+```json
+{
+  "order": {
+    "id": "6c0d342d-3f30-475d-8a13-2742cf09c105",
+    "status": "PENDING",
+    "createdAt": "2026-11-04T10:00:00.000Z",
+    "totalPence": 6047,
+    "customer": {
+      "id": "…",
+      "name": "Sam Jones",
+      "email": "sam@example.com",
+      "phone": "07700900123"
+    },
+    "delivery": {
+      "option": "Express delivery",
+      "pricePence": 499,
+      "addressLine1": "1 High Street",
+      "addressLine2": null,
+      "town": "Belfast",
+      "postcode": "BT1 1AA"
+    },
+    "items": [
+      { "productId": "…", "name": "Desk Lamp", "quantity": 2, "unitPricePence": 2499 }
+    ]
+  }
+}
+```
+
+The customer name, email and phone come from the order's own checkout details
+when present, otherwise from the account (`phone` can then be `null`).
+`delivery.option` is the readable delivery option name, falling back to the
+stored value, or `null`. Orders placed before checkout existed have `null`
+address fields.
+
+### `GET /api/admin/reports/sales?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+Both dates are required, must be real calendar dates with `from <= to`, and
+may span at most 366 days (inclusive). The range is inclusive and in UTC, from
+`from` 00:00:00Z to the end of the `to` day.
+
+```json
+{
+  "range": { "from": "2026-11-01", "to": "2026-11-05" },
+  "summary": {
+    "totalOrders": 3,
+    "totalRevenuePence": 6000,
+    "averageOrderValuePence": 2000,
+    "unitsSold": 7
+  },
+  "ordersByStatus": [{ "status": "PENDING", "count": 2 }],
+  "dailySales": [{ "date": "2026-11-02", "orders": 1, "revenuePence": 2500 }],
+  "topProducts": [
+    { "productId": "…", "name": "Desk Lamp", "unitsSold": 4, "revenuePence": 4000 }
+  ]
+}
+```
+
+- `CANCELLED` orders are excluded from `totalOrders`, revenue, `unitsSold`,
+  `dailySales` and `topProducts`, but are counted in `ordersByStatus`.
+- `ordersByStatus` only lists statuses that have orders, in lifecycle order.
+- `dailySales` has one row per UTC day that has orders, ascending by date.
+- `topProducts` is the top 10 by `revenuePence`, highest first.
+- `averageOrderValuePence` is `0` when there are no orders; otherwise it is
+  rounded to whole pence.
+- Figures are computed in the database (`groupBy` and SQL aggregation), not by
+  loading orders into memory. `order` has indexes on `(createdAt, id)` and
+  `(order_status, createdAt)` to support these queries.
 
 ### Authentication and authorization
 
