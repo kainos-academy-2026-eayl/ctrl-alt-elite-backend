@@ -33,6 +33,7 @@ const profileUpdateSchema = z
     lastName: name.optional(),
     addressLine1: optionalText(200, 'Address line 1'),
     addressLine2: optionalText(200, 'Address line 2'),
+    town: optionalText(60, 'Town or city'),
     postcode: optionalText(20, 'Postcode'),
     phoneNumber: optionalText(30, 'Phone number').refine(
       (value) => !value || (/^\+?[\d ().-]+$/.test(value) && /\d/.test(value)),

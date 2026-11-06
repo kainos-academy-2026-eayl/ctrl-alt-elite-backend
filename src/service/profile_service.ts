@@ -18,6 +18,7 @@ const profileSelect = {
   email: true,
   addressLine1: true,
   addressLine2: true,
+  town: true,
   postcode: true,
   phoneNumber: true,
   profilePhoto: true,
@@ -34,6 +35,7 @@ function publicProfile(user: ProfileRecord) {
     email: user.email,
     addressLine1: user.addressLine1,
     addressLine2: user.addressLine2,
+    town: user.town,
     postcode: user.postcode,
     phoneNumber: user.phoneNumber,
     hasPhoto: user.profilePhoto !== null,
@@ -136,6 +138,7 @@ export function createProfileService(database: PrismaClient) {
         ...(profile.addressLine2 !== undefined
           ? { addressLine2: profile.addressLine2 }
           : {}),
+        ...(profile.town !== undefined ? { town: profile.town } : {}),
         ...(profile.postcode !== undefined
           ? { postcode: profile.postcode }
           : {}),

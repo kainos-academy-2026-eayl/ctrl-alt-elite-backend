@@ -364,17 +364,25 @@ existing UUID and `registrationDate` is the UTC date of the user's `createdAt`.
 ## Customer profiles
 
 The authenticated `GET /api/profile` returns `id`, `username`, `firstName`,
-`lastName`, `email`, `addressLine1`, `addressLine2`, `postcode`, `phoneNumber` and
+`lastName`, `email`, `addressLine1`, `addressLine2`, `town`, `postcode`, `phoneNumber` and
 `hasPhoto`. Identity comes only from the verified backend login token.
 
 `PATCH /api/profile` accepts any subset of the editable fields. Names are trimmed,
 nonempty and at most 100 characters. Optional username (30 characters), address
-lines (200 each), postcode (20), and phone number (30) accept null or blank strings
+lines (200 each), town/city (`town`, 60), postcode (20), and phone number (30) accept null or blank strings
 to clear them; omitted values remain unchanged. Phone numbers are strings and
 allow digits, spaces, a leading plus, brackets, dots and hyphens.
 Usernames are unique and case-sensitive, for display only. Login remains email
 and password. Email is returned read-only: attempts to update it through this API
 are rejected, as are unknown fields such as roles, passwords and user IDs.
+
+The `add_profile_town` migration adds a nullable `User.town` column without
+changing existing accounts or orders. Existing profiles return `town: null`
+until a town/city is saved. The frontend can fill checkout's editable town/city
+from this profile value. Checkout still submits ordinary customer and address
+details to `POST /api/orders`: choosing or editing saved details does not update
+the profile. Order addresses remain snapshots, independent of later profile
+changes. No additional checkout endpoint or details-source flag is required.
 
 `PUT /api/profile/photo` accepts raw JPG, PNG or WebP bytes up to 20 MiB and
 16 megapixels. The server decodes the image, corrects orientation, strips metadata
