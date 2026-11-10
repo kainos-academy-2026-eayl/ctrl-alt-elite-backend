@@ -15,5 +15,63 @@ services:
       timeout: 5s
       retries: 20
 
+  migrate:
+    build:
+      context: .
+      target: tools
+    environment:
+      DATABASE_URL: &database-url ${DOCKER_DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npm", "run", "db:deploy"]
+
+  backend:
+    image: ctrl-alt-elite-backend:alpine
+    build:
+      context: .
+      target: runtime
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: *database-url
+      JWT_SECRET: ${JWT_SECRET:-}
+      FRONTEND_ORIGIN: ${DOCKER_FRONTEND_ORIGIN:-http://localhost:${FRONTEND_PORT:-3000}}
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-3001}:3001"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    init: true
+
+  frontend:
+    image: ctrl-alt-elite-frontend:alpine
+    build:
+      context: ../ctrl-alt-elite-frontend
+    environment:
+      # Local HTTP development only; use production behind HTTPS.
+      NODE_ENV: ${DOCKER_NODE_ENV:-development}
+      PORT: 3000
+      BACKEND_ORIGIN: http://backend:3001
+      JWT_SECRET: ${JWT_SECRET:-}
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    init: true
+
+  seed:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: tools
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["npm", "run", "db:seed"]
+
 volumes:
   postgres_data:
