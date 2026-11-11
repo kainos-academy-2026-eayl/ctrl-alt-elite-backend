@@ -1,0 +1,9 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+tfplan
+*.tfplan
+*.tfvars
+# Allow committing environment tfvars that contain NO secrets
+!dev.tfvars
