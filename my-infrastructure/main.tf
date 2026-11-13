@@ -15,12 +15,15 @@ locals {
   )
 }
 
-# -----------------------------------------------------------------------------
-# The resource group itself. Every value now comes from a variable or local,
-# so the same code can deploy dev/test/prod just by changing the inputs.
-# -----------------------------------------------------------------------------
-resource "azurerm_resource_group" "test" {
-  name     = var.resource_group_name # changing this forces a destroy + recreate
-  location = var.location            # changing this also forces a recreate
-  tags     = local.common_tags       # tags can be changed in-place
+module "resource_group" {
+  source = "./modules/resource-group"
+
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  tags                = local.common_tags
+}
+
+moved {
+  from = azurerm_resource_group.test
+  to   = module.resource_group.azurerm_resource_group.test
 }
