@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-    name: Build, lint and test
+    name: Test and quality checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -36,4 +36,14 @@ jobs:
         run: npm run test
       - name: Display message
         run: echo "schweet"
-    
+
+  build:
+    name: Build container image
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t ctrl-alt-elite-backend:${{ github.sha }} .
