@@ -34,4 +34,6 @@ jobs:
         run: npm run lint
       - name: Test
         run: npm run test
+      - name: Display message
+        run: echo "schweet"
     

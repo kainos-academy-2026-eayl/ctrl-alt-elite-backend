@@ -1,0 +1,21 @@
+services:
+  migrate:
+    build:
+      secrets:
+        - corporate_ca
+  backend:
+    build:
+      secrets:
+        - corporate_ca
+  frontend:
+    build:
+      secrets:
+        - corporate_ca
+  seed:
+    build:
+      secrets:
+        - corporate_ca
+
+secrets:
+  corporate_ca:
+    file: ${DOCKER_CA_CERTIFICATE:?Set DOCKER_CA_CERTIFICATE to your trusted corporate CA PEM file}
