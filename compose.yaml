@@ -44,7 +44,7 @@ services:
 
   # Backend API
   backend:
-    image: ctrl-alt-elite-backend:alpine   # tag given to the built image
+    image: acraiacademy26.azurecr.io/ctrl-alt-elite-backend:alpine  # tag given to the built image
     build:
       context: .
       target: runtime   # small production stage of the Dockerfile (it also defines a HEALTHCHECK)
@@ -64,7 +64,7 @@ services:
 
   # Frontend web app, built from the sibling frontend project
   frontend:
-    image: ctrl-alt-elite-frontend:alpine
+    image: acraiacademy26.azurecr.io/ctrl-alt-elite-frontend:alpine
     build:
       context: ../ctrl-alt-elite-frontend
     environment:
