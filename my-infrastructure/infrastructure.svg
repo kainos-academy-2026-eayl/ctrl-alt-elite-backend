@@ -6,8 +6,9 @@
 <!-- Title: G Pages: 1 -->
 <svg width="234pt" height="137pt"
  viewBox="0.00 0.00 234.00 137.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <title>G</title>
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 133)">
-<title>G</title>
+
 <polygon fill="white" stroke="none" points="-4,4 -4,-133 229.75,-133 229.75,4 -4,4"/>
 <g id="clust1" class="cluster">
 <title>cluster_module.resource_group</title>
