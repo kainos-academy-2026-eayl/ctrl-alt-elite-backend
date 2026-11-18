@@ -1,0 +1,10 @@
+digraph G {
+  rankdir = "RL";
+  node [shape = rect, fontname = "sans-serif"];
+  "azurerm_storage_account.practice" [label="azurerm_storage_account.practice"];
+  subgraph "cluster_module.resource_group" {
+    label = "module.resource_group"
+    fontname = "sans-serif"
+    "module.resource_group.azurerm_resource_group.test" [label="azurerm_resource_group.test"];
+  }
+}
