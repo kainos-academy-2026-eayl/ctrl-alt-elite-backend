@@ -56,9 +56,7 @@ jobs:
       TF_IN_AUTOMATION: "true"
       ARM_USE_OIDC: "true"
       ARM_USE_CLI: "false"
-      # Use separate Terraform identities, not the ACR publishing identity.
-      # Azure must trust the apply identity only for pushes to main.
-      ARM_CLIENT_ID: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.TERRAFORM_APPLY_CLIENT_ID || vars.TERRAFORM_PLAN_CLIENT_ID }}
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
     steps:
