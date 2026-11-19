@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, master]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled]
 
 permissions:
   contents: read
@@ -47,3 +47,143 @@ jobs:
         uses: actions/checkout@v4
       - name: Build image
         run: docker build -t ctrl-alt-elite-backend:${{ github.sha }} .
+      - name: Save requested PR image
+        id: save_pr_image
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.action == 'labeled' &&
+          github.event.label.name == 'publish-image' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          docker save --output "$RUNNER_TEMP/pr-image.tar" \
+            "ctrl-alt-elite-backend:${{ github.sha }}"
+
+      - name: Upload PR image
+        if: steps.save_pr_image.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-image
+          path: ${{ runner.temp }}/pr-image.tar
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+
+  push:
+    name: Publish image to ACR
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID}}
+          tenant-id: ${{ vars.AZURE_TENANT_ID}}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID}}
+      - name: Log Docker in to ACR
+        run: az acr login --name "${{ vars.ACR_CTRL }}"
+      - name: Build image for ACR
+        run: |
+          docker build \
+            --tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}" \
+            .
+      - name: Push image to ACR
+        run: |
+          docker push "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}"
+
+  update_latest:
+    name: Update latest image tag
+    needs: push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: acr-backend-main-latest
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID}}
+          tenant-id: ${{ vars.AZURE_TENANT_ID}}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID}}
+
+      - name: Log Docker in to ACR
+        run: az acr login --name "${{ vars.ACR_CTRL }}"
+
+      - name: Prepare latest image tag
+        run: |
+          docker pull "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}"
+          docker tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}" \
+            "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:latest"
+
+      - name: Check current main HEAD
+        id: main_head
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'heads/main',
+            });
+            const isCurrent = data.object.sha === context.sha;
+            core.setOutput('is_current', isCurrent);
+            if (!isCurrent) {
+              core.info('Skipping latest: this run no longer matches main HEAD.');
+            }
+
+      - name: Push latest image tag
+        if: steps.main_head.outputs.is_current == 'true'
+        run: docker push "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:latest"
+
+  publish_pr:
+    name: Publish PR image to ACR
+    needs: build
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'publish-image' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download PR image
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-image
+          path: ${{ runner.temp }}
+
+      - name: Load PR image
+        run: docker load --input "$RUNNER_TEMP/pr-image.tar"
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID}}
+          tenant-id: ${{ vars.AZURE_TENANT_ID}}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID}}
+      - name: Log Docker in to ACR
+        run: az acr login --name "${{ vars.ACR_CTRL }}"
+
+      - name: Tag PR image
+        run: |
+          docker tag "ctrl-alt-elite-backend:${{ github.sha }}" \
+            "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:pr-${{ github.event.pull_request.number }}-${{ github.sha }}"
+
+      - name: Push PR image
+        run: |
+          docker push "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:pr-${{ github.event.pull_request.number }}-${{ github.sha }}"
