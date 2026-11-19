@@ -1,6 +1,36 @@
 # ctrl-alt-elite-backend
 Ctrl Alt Elite Backend
 
+## CI image publishing
+
+[The CI workflow](.github/workflows/ci.yml) runs checks and builds the Docker
+image for pull requests and pushes to `main` or `master`.
+
+- Pushes to `main` publish their commit tag to ACR independently. A separate
+  job updates `latest`, with only one such job running at a time. Immediately
+  before pushing `latest`, it checks that the run's commit still matches the
+  current `main` HEAD. Older runs keep their commit tags but skip updating
+  `latest`; a failed HEAD lookup fails the update.
+- Adding the `publish-image` label to a same-repository PR publishes
+  `pr-<PR number>-<github.sha>` after checks pass. For PR runs, `github.sha`
+  identifies GitHub's tested merge commit. Preview publishing does not update
+  `latest` or deploy the application.
+- New commits do not automatically publish while the label remains attached.
+  Remove and re-add the label to request another preview. Other label additions
+  and fork PRs do not publish.
+
+The PR image is built without Azure login, saved as a GitHub artifact for seven
+days, then downloaded and pushed by a separate job. Check the publishing job in
+GitHub Actions and the matching tag in Azure Container Registry to verify a push.
+
+Repository variables are `ACR_CTRL` (the short registry name),
+`ACR_LOGIN_SERVER`, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` and
+`AZURE_SUBSCRIPTION_ID`. The app registration uses OIDC credentials for both
+`main` and pull requests, with `AcrPush` on the registry. This grants
+registry-wide push access: labels are workflow controls, not Azure permission
+boundaries. Use this identity only for trusted image-publishing workflows;
+Terraform must use a separate identity.
+
 ## Connecting the product frontend
 
 Run the backend on port `3001` and the frontend on port `8080`.
