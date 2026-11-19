@@ -55,8 +55,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y graphviz
 
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Initialise Terraform without the backend
-        run: terraform init -input=false -lockfile=readonly
+        run: terraform init -lockfile=readonly
 
       - name: Generate the image
         run: |
@@ -68,7 +75,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: terraform-infrastructure-graph
-          path: my-infrastructure/infrastructure.png
+          path: my-infrastructure/infrastructure.svg
           if-no-files-found: error
           retention-days: 30
 

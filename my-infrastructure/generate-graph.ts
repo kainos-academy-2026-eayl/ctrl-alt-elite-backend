@@ -32,4 +32,3 @@ const accessibleSvg = svg.replace(
 
 writeFileSync('infrastructure.svg', accessibleSvg, 'utf8');
 console.log('Generated infrastructure.svg with an accessible title.');
-
