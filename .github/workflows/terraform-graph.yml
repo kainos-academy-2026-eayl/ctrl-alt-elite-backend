@@ -16,6 +16,7 @@ jobs:
 
     permissions:
       contents: read
+      id-token: write
 
     outputs:
       artifact-url: ${{ steps.upload.outputs.artifact-url }}
@@ -55,12 +56,12 @@ jobs:
           sudo apt-get install -y graphviz
 
       - name: Initialise Terraform without the backend
-        run: terraform init -backend=false -input=false -lockfile=readonly
+        run: terraform init -input=false -lockfile=readonly
 
       - name: Generate the image
         run: |
           terraform graph > infrastructure.dot
-          dot -Tpng infrastructure.dot -o infrastructure.png
+          dot -Tsvg infrastructure.dot -o infrastructure.svg
 
       - name: Upload the image
         id: upload
