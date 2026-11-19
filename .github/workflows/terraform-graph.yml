@@ -16,7 +16,6 @@ jobs:
 
     permissions:
       contents: read
-      id-token: write
 
     outputs:
       artifact-url: ${{ steps.upload.outputs.artifact-url }}
@@ -55,19 +54,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y graphviz
 
-      - name: Log in to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID}}
-          tenant-id: ${{ vars.AZURE_TENANT_ID}}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID}}
+      - name: Prepare isolated configuration
+        run: |
+          mkdir -p "$RUNNER_TEMP/terraform-graph"
+          rsync -a --exclude=.terraform --exclude='*.tfstate*' --exclude=/backend.tf ./ "$RUNNER_TEMP/terraform-graph/"
 
       - name: Initialise Terraform without the backend
-        run: terraform init -lockfile=readonly
+        run: terraform -chdir="$RUNNER_TEMP/terraform-graph" init -backend=false -input=false -lockfile=readonly
 
       - name: Generate the image
         run: |
-          terraform graph > infrastructure.dot
+          terraform -chdir="$RUNNER_TEMP/terraform-graph" graph > infrastructure.dot
           dot -Tsvg infrastructure.dot -o infrastructure.svg
 
       - name: Upload the image
@@ -102,5 +99,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `Infrastructure graph: [Download the image](${process.env.ARTIFACT_URL})`
+              body: `Terraform configuration dependency graph (does not show deployed state or proposed changes): [Download the image](${process.env.ARTIFACT_URL})`
             });
