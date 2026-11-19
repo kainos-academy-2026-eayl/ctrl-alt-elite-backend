@@ -93,12 +93,60 @@ jobs:
         run: |
           docker build \
             --tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}" \
-            --tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:latest" \
             .
       - name: Push image to ACR
         run: |
           docker push "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}"
-          docker push "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:latest"
+
+  update_latest:
+    name: Update latest image tag
+    needs: push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: acr-backend-main-latest
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID}}
+          tenant-id: ${{ vars.AZURE_TENANT_ID}}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID}}
+
+      - name: Log Docker in to ACR
+        run: az acr login --name "${{ vars.ACR_CTRL }}"
+
+      - name: Prepare latest image tag
+        run: |
+          docker pull "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}"
+          docker tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}" \
+            "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:latest"
+
+      - name: Check current main HEAD
+        id: main_head
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'heads/main',
+            });
+            const isCurrent = data.object.sha === context.sha;
+            core.setOutput('is_current', isCurrent);
+            if (!isCurrent) {
+              core.info('Skipping latest: this run no longer matches main HEAD.');
+            }
+
+      - name: Push latest image tag
+        if: steps.main_head.outputs.is_current == 'true'
+        run: docker push "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:latest"
+
   publish_pr:
     name: Publish PR image to ACR
     needs: build

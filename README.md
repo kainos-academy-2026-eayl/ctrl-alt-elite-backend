@@ -6,7 +6,11 @@ Ctrl Alt Elite Backend
 [The CI workflow](.github/workflows/ci.yml) runs checks and builds the Docker
 image for pull requests and pushes to `main` or `master`.
 
-- Pushes to `main` publish the commit tag and `latest` to ACR.
+- Pushes to `main` publish their commit tag to ACR independently. A separate
+  job updates `latest`, with only one such job running at a time. Immediately
+  before pushing `latest`, it checks that the run's commit still matches the
+  current `main` HEAD. Older runs keep their commit tags but skip updating
+  `latest`; a failed HEAD lookup fails the update.
 - Adding the `publish-image` label to a same-repository PR publishes
   `pr-<PR number>-<github.sha>` after checks pass. For PR runs, `github.sha`
   identifies GitHub's tested merge commit. Preview publishing does not update
