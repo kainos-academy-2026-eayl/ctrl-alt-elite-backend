@@ -31,16 +31,6 @@ registry-wide push access: labels are workflow controls, not Azure permission
 boundaries. Use this identity only for trusted image-publishing workflows;
 Terraform must use a separate identity.
 
-## Terraform configuration graph
-
-[The graph workflow](.github/workflows/terraform-graph.yml) generates a
-dependency graph from the pull request's Terraform configuration and links a
-GitHub Actions artifact in the PR. It uses an isolated copy without the Azure
-backend and does not access state or require Azure credentials. The graph does
-not show deployed resources or a plan of proposed changes. The Terraform
-backend declaration must remain in `my-infrastructure/backend.tf` so it can be
-excluded from that copy.
-
 ## Connecting the product frontend
 
 Run the backend on port `3001` and the frontend on port `8080`.
