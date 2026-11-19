@@ -30,7 +30,6 @@ jobs:
         with:
           persist-credentials: false
 
-
       - name: Check YAML formatting
         working-directory: .
         run: npx --yes prettier@3.6.2 --check .github/workflows/terraform-graph.yml
