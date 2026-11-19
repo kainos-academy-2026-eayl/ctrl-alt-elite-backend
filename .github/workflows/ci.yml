@@ -67,6 +67,24 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           overwrite: true
+
+  release:
+    name: Draft release notes
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Update draft release
+        uses: release-drafter/release-drafter@v6
+        with:
+          publish: false
+          disable-autolabeler: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   scout:
     name: Docker Scout vulnerability scan
     needs: test
@@ -85,7 +103,7 @@ jobs:
           dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-password: ${{ secrets.DOCKERHUB_TOKEN }}
           write-comment: false
-          summary: true 
+          summary: true
           exit-code: false
 
   push:
