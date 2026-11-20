@@ -23,6 +23,27 @@ module "resource_group" {
   tags                = local.common_tags
 }
 
+resource "azurerm_storage_account" "practice" {
+  name                     = "ctrlaltdeletegroup"
+  resource_group_name      = module.resource_group.resource_group_name
+  location                 = module.resource_group.resource_group_location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  access_tier              = "Hot"
+
+  tags = {
+  exercise = "part-c-tag-update"
+  purpose  = "terraform-practice"
+  team     = "ctrl-alt-elite"
+  Environment = "dev"
+  Owner = "caolan"
+  managed_by = "terraform"
+  project = "ctrl-alt-elite"
+}
+}
+
+
 moved {
   from = azurerm_resource_group.test
   to   = module.resource_group.azurerm_resource_group.test
