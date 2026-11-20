@@ -225,3 +225,57 @@ jobs:
       - name: Push PR image
         run: |
           docker push "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:pr-${{ github.event.pull_request.number }}-${{ github.sha }}"
+
+  timing-report:
+    name: Timing report
+    if: always()
+    needs: [test, build, release, scout, push, update_latest, publish_pr]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RUN_API: repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+    steps:
+      - name: Write timing report
+        run: |
+          # Step names must match the names in the "test" job; skipped steps show "unavailable", never 0.
+          stage() {
+            jq -r --arg label "$1" --arg step "$2" '
+              (map(select(.name == "Test and quality checks")) | first) as $job
+              | (($job.steps // []) | map(select(.name == $step)) | first) as $s
+              | ($s.conclusion // "not finished") as $c
+              | (if $c == "success" then "passed"
+                 elif $c == "failure" then "failed"
+                 elif $s == null then "not found"
+                 else $c end) as $status
+              | (if $s != null and $c != "skipped" and $s.started_at != null and $s.completed_at != null
+                 then "\(($s.completed_at | fromdate) - ($s.started_at | fromdate)) s"
+                 else "unavailable" end) as $dur
+              | "| \($label) | \($status) | \($dur) |"
+            ' "$RUNNER_TEMP/jobs.json"
+          }
+
+          {
+            echo "## Build timing report"
+            echo
+            if gh api --paginate "$RUN_API/jobs" --jq '.jobs[]' | jq -s . > "$RUNNER_TEMP/jobs.json"; then
+              echo "Stages of the Test and quality checks job, in seconds."
+              echo
+              echo "| Stage | Result | Duration |"
+              echo "|---|---|---|"
+              stage "Install dependencies" "Install dependencies"
+              stage "Build" "Build"
+              stage "Lint" "Lint"
+              stage "Test" "Test"
+            else
+              echo "Stage timings unavailable: could not read job data from the GitHub API."
+            fi
+            echo
+            if elapsed=$(gh api "$RUN_API" --jq '(now - (.run_started_at | fromdate)) | floor'); then
+              echo "**Overall elapsed: ${elapsed} s**, measured from workflow start up to this reporting step (the last few seconds of this job are not included)."
+            else
+              echo "**Overall elapsed:** unavailable."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
