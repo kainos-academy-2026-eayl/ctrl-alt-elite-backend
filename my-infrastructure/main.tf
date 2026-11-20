@@ -32,15 +32,14 @@ resource "azurerm_storage_account" "practice" {
   account_kind             = "StorageV2"
   access_tier              = "Hot"
 
-  tags = {
-  exercise = "part-c-tag-update"
-  purpose  = "terraform-practice"
-  team     = "ctrl-alt-elite"
-  Environment = "dev"
-  Owner = "caolan"
-  managed_by = "terraform"
-  project = "ctrl-alt-elite"
-}
+  tags = merge(
+    local.common_tags,
+    {
+      exercise = "part-c-tag-update"
+      purpose  = "terraform-practice"
+      team     = "ctrl-alt-elite"
+    }
+  )
 }
 
 
