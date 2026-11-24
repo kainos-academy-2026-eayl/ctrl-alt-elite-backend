@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
-      group: terraform-dev
+      group: terraform-dev-${{ github.ref }}
       cancel-in-progress: false
     permissions:
       contents: read
@@ -162,7 +162,7 @@ jobs:
       - name: Build image for ACR
         run: |
           docker build \
-            --tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}" \
+            --tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-https://github.com/kainos-academy-2026-eayl/ctrl-alt-elite-backend/pull/45elite-backend:${{ github.sha }}" \
             .
       - name: Push image to ACR
         run: |
