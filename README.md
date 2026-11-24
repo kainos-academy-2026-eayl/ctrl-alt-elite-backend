@@ -28,8 +28,10 @@ Repository variables are `ACR_CTRL` (the short registry name),
 `AZURE_SUBSCRIPTION_ID`. The app registration uses OIDC credentials for both
 `main` and pull requests, with `AcrPush` on the registry. This grants
 registry-wide push access: labels are workflow controls, not Azure permission
-boundaries. Use this identity only for trusted image-publishing workflows;
-Terraform must use a separate identity.
+boundaries. Terraform also uses this identity and requires access to the
+remote-state container and permissions to manage its Azure resources; `AcrPush`
+alone is insufficient. Only main pushes apply, but trusted PR runs using this
+identity receive the same Azure permissions, so protect workflow changes.
 
 ## Connecting the product frontend
 
