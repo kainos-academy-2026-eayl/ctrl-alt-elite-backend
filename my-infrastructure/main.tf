@@ -23,6 +23,13 @@ module "resource_group" {
   tags                = local.common_tags
 }
 
+resource "azurerm_user_assigned_identity" "app" {
+  name                = "id-ctrl-alt-elite-${var.environment}"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  tags                = local.common_tags
+}
+
 resource "azurerm_storage_account" "practice" {
   name                     = "ctrlaltdeletegroup"
   resource_group_name      = module.resource_group.resource_group_name
