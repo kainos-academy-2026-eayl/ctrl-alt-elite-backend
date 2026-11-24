@@ -9,7 +9,7 @@ locals {
     {
       Environment = var.environment
       Owner       = var.owner
-      managed_by  = "terraform" # signals "don't change this by hand in the portal"
+      managed_by  = "terraform" 
     },
     var.tags
   )
