@@ -47,3 +47,18 @@ moved {
   from = azurerm_resource_group.test
   to   = module.resource_group.azurerm_resource_group.test
 }
+
+resource "azurerm_key_vault" "example" {
+  name                       = "CtrlVaultElite"
+  location                   = module.resource_group.resource_group_location
+  resource_group_name        = module.resource_group.resource_group_name
+  rbac_authorization_enabled = true
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+
+  sku_name = "standard"
+
+
+}
+data "azurerm_client_config" "current" {}
