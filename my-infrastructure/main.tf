@@ -9,7 +9,7 @@ locals {
     {
       Environment = var.environment
       Owner       = var.owner
-      managed_by  = "terraform" # signals "don't change this by hand in the portal"
+      managed_by  = "terraform" 
     },
     var.tags
   )
@@ -20,6 +20,13 @@ module "resource_group" {
 
   resource_group_name = var.resource_group_name
   location            = var.location
+  tags                = local.common_tags
+}
+
+resource "azurerm_user_assigned_identity" "app" {
+  name                = "id-ctrl-alt-elite-${var.environment}"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
   tags                = local.common_tags
 }
 
