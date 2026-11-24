@@ -180,7 +180,7 @@ jobs:
       - name: Build image for ACR
         run: |
           docker build \
-            --tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-https://github.com/kainos-academy-2026-eayl/ctrl-alt-elite-backend/pull/45elite-backend:${{ github.sha }}" \
+            --tag "${{ vars.ACR_LOGIN_SERVER }}/ctrl-alt-elite-backend:${{ github.sha }}" \
             .
       - name: Push image to ACR
         run: |
