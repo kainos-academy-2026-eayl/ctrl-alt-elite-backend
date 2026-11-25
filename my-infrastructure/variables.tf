@@ -67,11 +67,6 @@ variable "jwt_secret" {
   sensitive   = true
 }
 
-variable "managed_identity_resource_id" {
-  description = "Resource ID of the user-assigned managed identity"
-  type        = string
-}
-
 variable "acr_login_server" {
   description = "Azure Container Registry login server"
   type        = string
@@ -84,6 +79,7 @@ variable "backend_image" {
 
 variable "frontend_origin" {
   description = "Public frontend origin permitted by backend CORS"
+  type        = string
 }
 
 variable "container_app_environment_name" {

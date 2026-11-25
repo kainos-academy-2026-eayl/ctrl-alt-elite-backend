@@ -6,6 +6,9 @@ location                       = "uksouth"
 environment                    = "dev"
 owner                          = "caolan"
 
+acr_login_server = "acraiacademy26.azurecr.io"
+backend_image     = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:latest"
+
 tags = {
   project = "ctrl-alt-elite"
 }

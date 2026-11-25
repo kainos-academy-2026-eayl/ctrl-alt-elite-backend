@@ -9,17 +9,17 @@
 resource "azurerm_container_app" "backend" {
   name                         = "ctrl-alt-elite-backend-dev"
   resource_group_name          = module.resource_group.resource_group_name
-  container_app_environment_id = azurerm_container_app_environment.this.id ##placeholder until enviroment is created 
+  container_app_environment_id = module.container_app_environment.container_app_environment_id
   revision_mode                = "Single"
 
   identity {
-  type         = "UserAssigned"
-  identity_ids = [var.managed_identity_resource_id]
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.app.id]
   }
 
   registry {
     server   = var.acr_login_server
-    identity = var.managed_identity_resource_id
+    identity = azurerm_user_assigned_identity.app.id
   }
 
   secret {
