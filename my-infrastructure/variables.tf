@@ -84,5 +84,9 @@ variable "backend_image" {
 
 variable "frontend_origin" {
   description = "Public frontend origin permitted by backend CORS"
+}
+
+variable "container_app_environment_name" {
+  description = "Name of the Azure Container App Environment"
   type        = string
 }
