@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 resource "azurerm_container_app" "frontend" {
-  name                         = "ctrl-alt-elite-frontend-${var.environment}"
+  name                         = "ctrl-alt-elite-frontend-cae"
   resource_group_name          = module.resource_group.resource_group_name
   container_app_environment_id = module.container_app_environment.container_app_environment_id
   revision_mode                = "Single"
@@ -67,7 +67,7 @@ resource "azurerm_container_app" "frontend" {
 
 
 resource "azurerm_container_app" "backend" {
-  name                         = "ctrl-alt-elite-backend-dev"
+  name                         = "ctrl-alt-elite-backend-cae"
   resource_group_name          = module.resource_group.resource_group_name
   container_app_environment_id = module.container_app_environment.container_app_environment_id
   revision_mode                = "Single"
