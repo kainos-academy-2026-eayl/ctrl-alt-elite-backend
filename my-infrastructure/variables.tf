@@ -54,3 +54,35 @@ variable "tags" {
   type        = map(string) # a map of string keys to string values
   default     = {}          # empty map = no extra tags unless provided
 }
+
+variable "database_url" {
+  description = "Database connection string used by the backend"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "Secret used by the backend to sign JWTs"
+  type        = string
+  sensitive   = true
+}
+
+variable "managed_identity_resource_id" {
+  description = "Resource ID of the user-assigned managed identity"
+  type        = string
+}
+
+variable "acr_login_server" {
+  description = "Azure Container Registry login server"
+  type        = string
+}
+
+variable "backend_image" {
+  description = "Complete backend image reference, including tag"
+  type        = string
+}
+
+variable "frontend_origin" {
+  description = "Public frontend origin permitted by backend CORS"
+  type        = string
+}

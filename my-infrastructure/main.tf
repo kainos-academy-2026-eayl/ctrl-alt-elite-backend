@@ -2,6 +2,84 @@
 # Locals = values computed inside this config (not supplied by the user).
 # Use them to avoid repeating the same expression in multiple places.
 # -----------------------------------------------------------------------------
+
+
+
+
+resource "azurerm_container_app" "backend" {
+  name                         = "ctrl-alt-elite-backend-dev"
+  resource_group_name          = module.resource_group.resource_group_name
+  container_app_environment_id = azurerm_container_app_environment.this.id ##placeholder until enviroment is created 
+  revision_mode                = "Single"
+
+  identity {
+  type         = "UserAssigned"
+  identity_ids = [var.managed_identity_resource_id]
+  }
+
+  registry {
+    server   = var.acr_login_server
+    identity = var.managed_identity_resource_id
+  }
+
+  secret {
+  name  = "database-url"
+  value = var.database_url
+  }
+
+  secret {
+    name  = "jwt-secret"
+    value = var.jwt_secret
+  }
+
+  template {
+    min_replicas = 1
+    max_replicas = 1
+
+    container {
+      name   = "backend"
+      image  = var.backend_image
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "PORT"
+        value = "3001"
+      }
+
+      env {
+        name  = "FRONTEND_ORIGIN"
+        value = var.frontend_origin
+      }
+
+      env {
+        name        = "DATABASE_URL"
+        secret_name = "database-url"
+      }
+
+      env {
+        name        = "JWT_SECRET"
+        secret_name = "jwt-secret"
+      }
+    }
+  }
+
+  ingress {
+  external_enabled           = true
+  allow_insecure_connections = false
+  target_port                = 3001
+
+  traffic_weight {
+    latest_revision = true
+    percentage      = 100
+  }
+}
+
+  tags = local.common_tags
+}
+
+
+
 locals {
   # merge() combines maps left-to-right. Keys in var.tags override the
   # defaults below, so callers can add or replace tags without editing code.
