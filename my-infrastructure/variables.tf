@@ -86,3 +86,8 @@ variable "container_app_environment_name" {
   description = "Name of the Azure Container App Environment"
   type        = string
 }
+
+variable "frontend_image" {
+  description = "Complete frontend image reference, including tag"
+  type        = string
+}
