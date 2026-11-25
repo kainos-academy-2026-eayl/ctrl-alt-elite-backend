@@ -59,6 +59,12 @@ jobs:
       ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      
+      TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
+      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+      TF_VAR_acr_login_server: ${{ vars.ACR_LOGIN_SERVER }}
+      TF_VAR_backend_image: ${{ vars.BACKEND_IMAGE }}
+      TF_VAR_frontend_origin: ${{ secrets.FRONTEND_ORIGIN }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4

@@ -55,7 +55,39 @@ variable "tags" {
   default     = {}          # empty map = no extra tags unless provided
 }
 
+variable "database_url" {
+  description = "Database connection string used by the backend"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "Secret used by the backend to sign JWTs"
+  type        = string
+  sensitive   = true
+}
+
+variable "acr_login_server" {
+  description = "Azure Container Registry login server"
+  type        = string
+}
+
+variable "backend_image" {
+  description = "Complete backend image reference, including tag"
+  type        = string
+}
+
+variable "frontend_origin" {
+  description = "Public frontend origin permitted by backend CORS"
+  type        = string
+}
+
 variable "container_app_environment_name" {
   description = "Name of the Azure Container App Environment"
+  type        = string
+}
+
+variable "frontend_image" {
+  description = "Complete frontend image reference, including tag"
   type        = string
 }

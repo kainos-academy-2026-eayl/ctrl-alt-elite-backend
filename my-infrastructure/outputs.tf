@@ -17,3 +17,9 @@ output "common_tags" {
   description = "Tags applied to resources"
   value       = local.common_tags
 }
+
+output "frontend_url" {
+  description = "Public URL of the frontend Container App"
+  value       = "https://${azurerm_container_app.frontend.latest_revision_fqdn}"
+}
+
