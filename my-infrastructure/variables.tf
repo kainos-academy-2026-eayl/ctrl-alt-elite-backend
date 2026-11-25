@@ -54,3 +54,8 @@ variable "tags" {
   type        = map(string) # a map of string keys to string values
   default     = {}          # empty map = no extra tags unless provided
 }
+
+variable "container_app_environment_name" {
+  description = "Name of the Azure Container App Environment"
+  type        = string
+}
