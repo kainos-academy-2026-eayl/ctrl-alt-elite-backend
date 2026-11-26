@@ -7,8 +7,9 @@ environment                    = "dev"
 owner                          = "caolan"
 
 acr_login_server = "acraiacademy26.azurecr.io"
-backend_image     = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:latest"
-frontend_image    = "acraiacademy26.azurecr.io/ctrl-alt-elite-frontend:latest"
+backend_image    = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:latest"
+frontend_image   = "acraiacademy26.azurecr.io/ctrl-alt-elite-frontend:latest"
+database_image = "postgres:17-alpine"
 
 tags = {
   project = "ctrl-alt-elite"

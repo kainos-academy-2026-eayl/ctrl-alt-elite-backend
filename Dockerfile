@@ -102,6 +102,13 @@ FROM runtime-base AS runtime
 COPY --from=production-dependencies /app/package.json /app/package-lock.json ./
 COPY --from=production-dependencies /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma/images ./dist/images
+COPY --from=build /app/prisma/schema.prisma ./prisma/schema.prisma
+COPY --from=build /app/prisma/migrations ./prisma/migrations
+COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+COPY scripts/start-production.sh /app/start-production.sh
+
+RUN chmod +x /app/start-production.sh
 
 USER node
 
@@ -112,4 +119,4 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD ["node", "--input-type=module", "-e", "const response = await fetch(`http://127.0.0.1:${process.env.PORT}/health`); if (!response.ok) throw new Error(`Health check failed: ${response.status}`);"]
 
-CMD ["node", "dist/index.js"]
+CMD ["/app/start-production.sh"]

@@ -1,7 +1,10 @@
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
+import { hash } from 'argon2';
 import { createDatabase } from '../src/config/database_config';
 import { PRODUCT_TRANSLATIONS } from './product_translations';
+
+const DEMO_PASSWORD_HASH = await hash('password');
 
 const products = [
   {
@@ -324,6 +327,17 @@ const catalogue_products = catalogue_rows.map(
 const database = createDatabase();
 
 try {
+  await database.user.upsert({
+    where: { email: 'demo@example.com' },
+    create: {
+      id: 'stable-user-id',
+      firstName: 'Demo',
+      lastName: 'Customer',
+      email: 'demo@example.com',
+      passwordHash: DEMO_PASSWORD_HASH,
+    },
+    update: {},
+  });
   for (const product of products) {
     await database.product.upsert({
       where: { id: product.id },
