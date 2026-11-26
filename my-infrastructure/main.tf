@@ -40,8 +40,13 @@ resource "azurerm_container_app" "frontend" {
       }
 
       env {
-        name  = "BACKEND_ORIGIN"
-        value = "https://${azurerm_container_app.backend.latest_revision_fqdn}"
+        name = "BACKEND_ORIGIN"
+        # Built from the environment's stable default_domain rather than
+        # azurerm_container_app.backend.latest_revision_fqdn, which embeds an
+        # auto-generated revision suffix that changes on every backend
+        # redeploy and causes "provider produced inconsistent final plan"
+        # errors during apply.
+        value = "https://${azurerm_container_app.backend.name}.${module.container_app_environment.container_app_environment_default_domain}"
       }
 
       env {
