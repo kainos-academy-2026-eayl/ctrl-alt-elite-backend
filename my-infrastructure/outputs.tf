@@ -20,6 +20,6 @@ output "common_tags" {
 
 output "frontend_url" {
   description = "Public URL of the frontend Container App"
-  value       = "https://${azurerm_container_app.frontend.latest_revision_fqdn}"
+  value       = "https://${azurerm_container_app.frontend.name}.${module.container_app_environment.container_app_environment_default_domain}"
 }
 
