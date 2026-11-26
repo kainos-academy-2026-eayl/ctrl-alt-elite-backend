@@ -87,9 +87,12 @@ FROM runtime-base AS production-dependencies
 
 COPY package.json package-lock.json ./
 # Prune build-only optional peers using a production-only image manifest.
+# @prisma/engines is rebuilt because --ignore-scripts skips the postinstall that
+# downloads the schema engine `prisma migrate deploy` needs in start-production.sh.
 RUN npm ci --omit=dev --ignore-scripts \
     && npm pkg delete devDependencies \
     && npm prune --omit=dev --legacy-peer-deps --ignore-scripts \
+    && npm rebuild @prisma/engines \
     && npm cache clean --force
 
 # =============================================================================
