@@ -83,13 +83,18 @@ resource "azurerm_container_app" "backend" {
   }
 
   secret {
-  name  = "database-url"
-  value = var.database_url
+    name  = "jwt-secret"
+    value = var.jwt_secret
   }
 
   secret {
-    name  = "jwt-secret"
-    value = var.jwt_secret
+    name  = "database-password"
+    value = var.database_password
+  }
+
+  secret {
+    name  = "database-url"
+    value = "postgresql://ctrl_alt_elite:${var.database_password}@127.0.0.1:5432/ctrl_alt_elite"
   }
 
   template {
@@ -122,18 +127,40 @@ resource "azurerm_container_app" "backend" {
         secret_name = "jwt-secret"
       }
     }
+    container {
+      name   = "database"
+      image  = "acraiacademy26.azurecr.io/ctrl-alt-elite-database:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "POSTGRES_USER"
+        value = "ctrl_alt_elite"
+      }
+
+      env {
+        name        = "POSTGRES_PASSWORD"
+        secret_name = "database-password"
+      }
+
+      env {
+        name  = "POSTGRES_DB"
+        value = "ctrl_alt_elite"
+      }
+    }
+
   }
 
   ingress {
-  external_enabled           = true
-  allow_insecure_connections = false
-  target_port                = 3001
+    external_enabled           = true
+    allow_insecure_connections = false
+    target_port                = 3001
 
-  traffic_weight {
-    latest_revision = true
-    percentage      = 100
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
   }
-}
 
   tags = local.common_tags
 }
@@ -216,3 +243,5 @@ resource "azurerm_key_vault" "example" {
 
 }
 data "azurerm_client_config" "current" {}
+
+

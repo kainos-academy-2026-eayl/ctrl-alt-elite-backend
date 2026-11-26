@@ -55,12 +55,6 @@ variable "tags" {
   default     = {}          # empty map = no extra tags unless provided
 }
 
-variable "database_url" {
-  description = "Database connection string used by the backend"
-  type        = string
-  sensitive   = true
-}
-
 variable "jwt_secret" {
   description = "Secret used by the backend to sign JWTs"
   type        = string
@@ -90,4 +84,10 @@ variable "container_app_environment_name" {
 variable "frontend_image" {
   description = "Complete frontend image reference, including tag"
   type        = string
+}
+
+variable "database_password" {
+  description = "Password used by the PostgreSQL sidecar"
+  type        = string
+  sensitive   = true
 }
