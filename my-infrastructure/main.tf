@@ -93,8 +93,12 @@ resource "azurerm_container_app" "backend" {
   }
 
   secret {
-    name  = "database-url"
-    value = "postgresql://ctrl_alt_elite:${var.database_password}@127.0.0.1:5432/ctrl_alt_elite"
+    name = "database-url"
+    value = join("", [
+      "postgresql://ctrl_alt_elite:",
+      local.database_password_uri_encoded,
+      "@127.0.0.1:5432/ctrl_alt_elite"
+    ])
   }
 
   template {
@@ -129,7 +133,7 @@ resource "azurerm_container_app" "backend" {
     }
     container {
       name   = "database"
-      image  = "acraiacademy26.azurecr.io/ctrl-alt-elite-database:latest"
+      image  = var.database_image
       cpu    = 0.25
       memory = "0.5Gi"
 
@@ -168,6 +172,11 @@ resource "azurerm_container_app" "backend" {
 
 
 locals {
+  database_password_uri_encoded = replace(
+    urlencode(var.database_password),
+    "+",
+    "%20",
+  )
   # merge() combines maps left-to-right. Keys in var.tags override the
   # defaults below, so callers can add or replace tags without editing code.
   common_tags = merge(

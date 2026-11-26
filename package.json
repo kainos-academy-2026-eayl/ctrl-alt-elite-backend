@@ -15,7 +15,7 @@
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "test:admin:unit": "node --import tsx --test tests/admin/*.test.ts",
     "test:customers:unit": "node --import tsx --test tests/customers.test.ts",
-    "build": "npm run typecheck && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=dist/index.js --sourcemap",
+    "build": "npm run typecheck && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=dist/index.js --sourcemap && esbuild prisma/seed.ts --bundle --platform=node --format=esm --target=node22 --packages=external --outfile=dist/seed.js --sourcemap",
     "typecheck": "tsc",
     "start": "node dist/index.js",
     "lint": "biome check --error-on-warnings .",

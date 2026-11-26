@@ -91,3 +91,9 @@ variable "database_password" {
   type        = string
   sensitive   = true
 }
+
+variable "database_image" {
+  description = "PostgreSQL image used by the database sidecar"
+  type        = string
+  default     = "postgres:17-alpine"
+}

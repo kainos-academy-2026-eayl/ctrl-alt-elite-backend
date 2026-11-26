@@ -23,44 +23,48 @@ services:
     healthcheck:
       # pg_isready reports when Postgres is accepting connections.
       # `$$` escapes `$` so the variable is read inside the container, not by Compose.
-      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
-      interval: 2s   # check every 2 seconds
-      timeout: 5s    # a single check fails if it takes longer than this
-      retries: 20    # marked "unhealthy" after 20 failed checks in a row
+      test:
+        ["CMD-SHELL", 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 2s # check every 2 seconds
+      timeout: 5s # a single check fails if it takes longer than this
+      retries: 20 # marked "unhealthy" after 20 failed checks in a row
 
   # One-off job: applies Prisma migrations to the database, then exits.
   migrate:
     build:
-      context: .       # build from the Dockerfile in this folder
-      target: tools    # use the "tools" stage, which has the Prisma CLI installed
+      context: . # build from the Dockerfile in this folder
+      target: tools # use the "tools" stage, which has the Prisma CLI installed
     environment:
       # `&database-url` names this value (a YAML anchor) so the backend can reuse it below.
       # Inside Docker the database host is the service name `db` on its internal port 5432.
       DATABASE_URL: &database-url ${DOCKER_DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
     depends_on:
       db:
-        condition: service_healthy   # wait until the db healthcheck passes
-    command: ["npm", "run", "db:deploy"]
+        condition: service_healthy # wait until the db healthcheck passes
+    command: ["sh", "-c", "npm run db:deploy && npm run db:seed"]
 
   # Backend API
   backend:
-    image: acraiacademy26.azurecr.io/ctrl-alt-elite-backend:alpine  # tag given to the built image
+    image: acraiacademy26.azurecr.io/ctrl-alt-elite-backend:alpine # tag given to the built image
     build:
       context: .
-      target: runtime   # small production stage of the Dockerfile (it also defines a HEALTHCHECK)
+      target: runtime # small production stage of the Dockerfile (it also defines a HEALTHCHECK)
+      secrets:
+        - corporate_ca
     environment:
+      INITIALIZE_DATABASE: "false"
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: *database-url   # `*` reuses the value anchored in `migrate`
-      JWT_SECRET: ${JWT_SECRET:-}   # secret for signing login tokens; must match the frontend's
+      DATABASE_URL: *database-url # `*` reuses the value anchored in `migrate`
+      JWT_SECRET: ${JWT_SECRET:-} # secret for signing login tokens; must match the frontend's
       # Origin the backend allows for CORS (the frontend URL in your browser).
       FRONTEND_ORIGIN: ${DOCKER_FRONTEND_ORIGIN:-http://localhost:${FRONTEND_PORT:-3000}}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-3001}:3001"
     depends_on:
       migrate:
-        condition: service_completed_successfully   # start only after migrations finish without errors
-    init: true   # small init process that forwards stop signals and cleans up child processes
+        condition: service_completed_successfully # start only after migrations finish without errors
+    init: true # small init process that forwards stop signals and cleans up child processes
 
   # Frontend web app, built from the sibling frontend project
   frontend:
@@ -73,14 +77,20 @@ services:
       PORT: 3000
       # Container-to-container address: the service name `backend` resolves on the Compose network.
       BACKEND_ORIGIN: http://backend:3001
-      JWT_SECRET: ${JWT_SECRET:-}   # same secret as the backend so tokens can be checked
+      JWT_SECRET: ${JWT_SECRET:-} # same secret as the backend so tokens can be checked
     ports:
       - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
     depends_on:
       backend:
-        condition: service_healthy   # wait for the backend's Dockerfile HEALTHCHECK to pass
+        condition: service_healthy # wait for the backend's Dockerfile HEALTHCHECK to pass
     init: true
 
 # Named volumes used by the services above.
 volumes:
   postgres_data:
+
+# Build-time secrets. The certificate is mounted only while Docker runs the
+# RUN steps that need it, and is never saved into the image layers.
+secrets:
+  corporate_ca:
+    file: ${CORPORATE_CA_PATH:-/dev/null}
