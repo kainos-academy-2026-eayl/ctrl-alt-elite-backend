@@ -73,7 +73,7 @@ jobs:
         with:
           terraform_version: 1.17.1
       - name: Initialise Terraform
-        run: terraform init -input=false -lockfile=readonly -backend-config="use_cli=false" -backend-config="use_oidc=true"
+        run: terraform init -input=false -lockfile=readonly -backend-config="use_cli=false" -backend-config="use_oidc=true" -backend-config="key=backend-dev.tfstate"
       - name: Terraform plan dev
         run: terraform plan -input=false -lock-timeout=5m -var-file=dev.tfvars -out="$RUNNER_TEMP/dev.tfplan"
       - name: Verify commit is still main
