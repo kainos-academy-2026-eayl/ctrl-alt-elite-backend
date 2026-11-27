@@ -110,6 +110,11 @@ resource "azurerm_container_app" "backend" {
     min_replicas = 1
     max_replicas = 1
 
+    volume {
+      name         = "postgres-data"
+      storage_type = "EmptyDir"
+    }
+
     container {
       name   = "backend"
       image  = var.backend_image
@@ -119,6 +124,11 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "PORT"
         value = "3001"
+      }
+
+      env {
+        name  = "INITIALIZE_DATABASE"
+        value = "true"
       }
 
       env {
@@ -155,6 +165,16 @@ resource "azurerm_container_app" "backend" {
       env {
         name  = "POSTGRES_DB"
         value = "ctrl_alt_elite"
+      }
+
+      env {
+        name  = "PGDATA"
+        value = "/var/lib/postgresql/data/pgdata"
+      }
+
+      volume_mounts {
+        name = "postgres-data"
+        path = "/var/lib/postgresql/data"
       }
     }
 
