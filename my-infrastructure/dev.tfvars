@@ -2,14 +2,19 @@
 # Use with: terraform plan -var-file=dev.tfvars
 resource_group_name            = "rg-ctrl-alt-elite-tf-dev"
 container_app_environment_name = "cae-ctrl-alt-elite-dev"
+frontend_app_name              = "ctrl-alt-elite-frontend-cae"
+backend_app_name               = "ctrl-alt-elite-backend-cae"
 location                       = "uksouth"
 environment                    = "dev"
 owner                          = "caolan"
 
 acr_login_server = "acraiacademy26.azurecr.io"
-backend_image = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:23c48ef8d1ff3d5ce84addf730a8d3edd00ff673"
+backend_image    = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:23c48ef8d1ff3d5ce84addf730a8d3edd00ff673"
 frontend_image   = "acraiacademy26.azurecr.io/ctrl-alt-elite-frontend:63360c7e08995ee3849255e8a494022de7e9ef5a"
-database_image = "postgres:17-alpine"
+database_image   = "postgres:17-alpine"
+
+min_replicas = 1
+max_replicas = 1
 
 tags = {
   project = "ctrl-alt-elite"

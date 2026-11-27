@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 resource "azurerm_container_app" "frontend" {
-  name                         = "ctrl-alt-elite-frontend-cae"
+  name                         = var.frontend_app_name
   resource_group_name          = module.resource_group.resource_group_name
   container_app_environment_id = module.container_app_environment.container_app_environment_id
   revision_mode                = "Single"
@@ -25,8 +25,8 @@ resource "azurerm_container_app" "frontend" {
   }
 
   template {
-    min_replicas = 1
-    max_replicas = 1
+    min_replicas = var.min_replicas
+    max_replicas = var.max_replicas
 
     container {
       name   = "frontend"
@@ -77,7 +77,7 @@ resource "azurerm_container_app" "frontend" {
 
 
 resource "azurerm_container_app" "backend" {
-  name                         = "ctrl-alt-elite-backend-cae"
+  name                         = var.backend_app_name
   resource_group_name          = module.resource_group.resource_group_name
   container_app_environment_id = module.container_app_environment.container_app_environment_id
   revision_mode                = "Single"
@@ -112,8 +112,8 @@ resource "azurerm_container_app" "backend" {
   }
 
   template {
-    min_replicas = 1
-    max_replicas = 1
+    min_replicas = var.min_replicas
+    max_replicas = var.max_replicas
 
     volume {
       name         = "postgres-data"

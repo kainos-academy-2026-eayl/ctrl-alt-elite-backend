@@ -97,3 +97,21 @@ variable "database_image" {
   type        = string
   default     = "postgres:17-alpine"
 }
+variable "min_replicas" {
+  description = "Minimum number of running app replicas"
+  type        = number
+}
+
+variable "max_replicas" {
+  description = "Maximum number of app replicas"
+  type        = number
+}
+variable "frontend_app_name" {
+  description = "Name of the frontend Container App"
+  type        = string
+}
+
+variable "backend_app_name" {
+  description = "Name of the backend Container App"
+  type        = string
+}

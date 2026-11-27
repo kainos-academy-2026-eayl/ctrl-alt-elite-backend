@@ -7,3 +7,4 @@ tfplan
 *.tfvars
 # Allow committing environment tfvars that contain NO secrets
 !dev.tfvars
+!prod.tfvars
