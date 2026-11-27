@@ -47,9 +47,14 @@ The seed includes a demo customer with a known password; use this only in an
 appropriately restricted test environment, as both app ingresses are public.
 
 Terraform and image publishing run independently in CI. After merging backend
-image changes, wait for the **Publish image to ACR** job. Then update
-`backend_image` in [dev.tfvars](my-infrastructure/dev.tfvars) to the published
-commit-SHA tag and merge that change. A successful Terraform apply alone does
+image changes, wait for the **Publish image to ACR** job. Then set the
+`BACKEND_IMAGE` (or `FRONTEND_IMAGE`) repository variable under **Settings →
+Secrets and variables → Actions → Variables** to the full image reference with
+the published commit-SHA tag, and run the **CI** workflow on `main` from the
+Actions tab (**Run workflow**). Do not set the images in
+[dev.tfvars](my-infrastructure/dev.tfvars): `-var-file` values override the
+`TF_VAR_*` variables. For local Terraform runs, export
+`TF_VAR_backend_image` and `TF_VAR_frontend_image` first. A successful Terraform apply alone does
 not prove startup succeeded. Check the backend and database logs in Azure, then
 request `/api/products` from the backend and verify the frontend shows products.
 
