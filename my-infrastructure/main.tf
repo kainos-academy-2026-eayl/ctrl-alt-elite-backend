@@ -141,6 +141,31 @@ resource "azurerm_container_app" "backend" {
       image  = var.database_image
       cpu    = 0.25
       memory = "0.5Gi"
+      # The default postgres entrypoint is replaced with a small wrapper that
+      # takes an exclusive lock on the data volume before starting Postgres.
+      # Azure Container Apps can briefly run two replicas of the same
+      # revision at once during a rolling deploy; without this lock, two
+      # Postgres processes writing to the same Azure Files share at the same
+      # time would corrupt the data directory.
+      command = ["/bin/sh", "-c"]
+      args = [
+        <<-EOT
+          exec 9>/var/lib/postgresql/data/.instance.lock
+          echo "Waiting for exclusive lock on the database volume..."
+          flock 9
+          echo "Lock acquired; starting PostgreSQL."
+          exec docker-entrypoint.sh postgres
+        EOT
+      ]
+
+      env {
+        name = "PGDATA"
+        # Postgres's own data directory is placed in a subfolder of the
+        # mount, not at the mount's root. Azure Files shares can contain
+        # metadata Postgres doesn't expect to see directly inside PGDATA;
+        # giving it a dedicated subfolder avoids that clash.
+        value = "/var/lib/postgresql/data/pgdata"
+      }
 
       env {
         name  = "POSTGRES_USER"
@@ -156,8 +181,25 @@ resource "azurerm_container_app" "backend" {
         name  = "POSTGRES_DB"
         value = "ctrl_alt_elite"
       }
+
+      volume_mounts {
+        name = "postgres-data"
+        path = "/var/lib/postgresql/data"
+      }
     }
 
+    volume {
+      name         = "postgres-data"
+      storage_type = "AzureFile"
+      storage_name = azurerm_container_app_environment_storage.database.name
+      # Azure Files is an SMB share: every file on it reports the same fixed
+      # owner/permissions, set once here at mount time, rather than letting
+      # each container chmod/chown individually. uid/gid 70 is the
+      # "postgres" user baked into the official postgres image, and
+      # dir_mode/file_mode 0700/0600 match what Postgres insists its data
+      # directory look like on startup.
+      mount_options = "uid=70,gid=70,dir_mode=0700,file_mode=0600"
+    }
   }
 
   ingress {
@@ -237,6 +279,38 @@ resource "azurerm_storage_account" "practice" {
   )
 }
 
+
+resource "azurerm_storage_account" "database" {
+  # Backs the "postgres-data" file share mounted into the database
+  # container below, so Postgres's data directory survives container
+  # restarts and redeploys instead of living on the container's own
+  # throwaway disk.
+  name                     = "ctrlaltelitedbdev"
+  resource_group_name      = module.resource_group.resource_group_name
+  location                 = module.resource_group.resource_group_location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  access_tier              = "Hot"
+
+  tags = local.common_tags
+}
+
+resource "azurerm_storage_share" "database" {
+  name               = "postgres-data"
+  storage_account_id = azurerm_storage_account.database.id
+  enabled_protocol   = "SMB"
+  quota              = 5 # GiB
+}
+
+resource "azurerm_container_app_environment_storage" "database" {
+  name                         = "postgres-data"
+  container_app_environment_id = module.container_app_environment.container_app_environment_id
+  account_name                 = azurerm_storage_account.database.name
+  access_key                   = azurerm_storage_account.database.primary_access_key
+  share_name                   = azurerm_storage_share.database.name
+  access_mode                  = "ReadWrite"
+}
 
 moved {
   from = azurerm_resource_group.test
