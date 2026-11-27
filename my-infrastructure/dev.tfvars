@@ -9,8 +9,8 @@ environment                    = "dev"
 owner                          = "caolan"
 
 acr_login_server = "acraiacademy26.azurecr.io"
-backend_image    = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:latest"
-frontend_image   = "acraiacademy26.azurecr.io/ctrl-alt-elite-frontend:latest"
+backend_image    = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:23c48ef8d1ff3d5ce84addf730a8d3edd00ff673"
+frontend_image   = "acraiacademy26.azurecr.io/ctrl-alt-elite-frontend:63360c7e08995ee3849255e8a494022de7e9ef5a"
 database_image   = "postgres:17-alpine"
 
 min_replicas = 1

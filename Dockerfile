@@ -90,12 +90,14 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts \
     && npm pkg delete devDependencies \
     && npm prune --omit=dev --legacy-peer-deps --ignore-scripts \
+    && npm rebuild @prisma/engines \
+    && ls node_modules/@prisma/engines/schema-engine-* > /dev/null \
     && npm cache clean --force
 
 # =============================================================================
 # Stage 6: runtime (final image)
-# Copies in production node_modules and the compiled app only. No source
-# code, dev tools or build cache. Runs as a non-root user for security.
+# Copies in production node_modules, including the Prisma migration CLI, and
+# the compiled app. Runs as a non-root user for security.
 # =============================================================================
 FROM runtime-base AS runtime
 
