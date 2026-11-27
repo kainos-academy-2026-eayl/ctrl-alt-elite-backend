@@ -1,6 +1,17 @@
 # ctrl-alt-elite-backend
 Ctrl Alt Elite Backend
 
+## Terraform dev environment scaffolding
+
+Terraform dev scaffolding is documented in
+[my-infrastructure/environments/README.md](my-infrastructure/environments/README.md).
+The dev environment root is intentionally non-deployable until the incoming
+`application-stack` reusable module is merged.
+
+The dev environment has its own state key, secret inputs, Container Apps, and
+PostgreSQL sidecar. The `dev` GitHub Environment supplies `JWT_SECRET` and
+`DATABASE_PASSWORD`; repository-level fallbacks must not be used.
+
 ## CI image publishing
 
 [The CI workflow](.github/workflows/ci.yml) runs checks and builds the Docker

@@ -1,0 +1,83 @@
+name: Terraform dev environment
+
+on:
+  pull_request:
+    paths:
+      - "my-infrastructure/**"
+      - ".github/workflows/terraform-environments.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate:
+    name: Validate dev
+    if: ${{ hashFiles('my-infrastructure/modules/application-stack/**') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.1
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive my-infrastructure/environments/dev
+
+      - name: Initialise without backend
+        working-directory: my-infrastructure/environments/dev
+        run: terraform init -backend=false
+
+      - name: Validate configuration
+        working-directory: my-infrastructure/environments/dev
+        run: terraform validate
+
+  plan:
+    name: Plan dev
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' &&
+        hashFiles('my-infrastructure/modules/application-stack/**') != ''
+      }}
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      # These resolve from the dev GitHub Environment.
+      # GitHub masks them in logs and Terraform never reads them from a tfvars file.
+      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+      TF_VAR_database_password: ${{ secrets.DATABASE_PASSWORD }}
+      BACKEND_IMAGE: ${{ vars.BACKEND_IMAGE }}
+      FRONTEND_IMAGE: ${{ vars.FRONTEND_IMAGE }}
+      FRONTEND_ORIGIN: ${{ vars.FRONTEND_ORIGIN }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.1
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Initialise environment state
+        working-directory: my-infrastructure/environments/dev
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Create plan
+        working-directory: my-infrastructure/environments/dev
+        run: >-
+          terraform plan
+          -var-file=dev.tfvars
+          -var="backend_image=${BACKEND_IMAGE}"
+          -var="frontend_image=${FRONTEND_IMAGE}"
+          -var="frontend_origin=${FRONTEND_ORIGIN}"
