@@ -40,6 +40,11 @@ resource "azurerm_container_app" "frontend" {
       }
 
       env {
+        name  = "TRUST_PROXY"
+        value = "true"
+      }
+
+      env {
         name = "BACKEND_ORIGIN"
         # Built from the environment's stable default_domain rather than
         # azurerm_container_app.backend.latest_revision_fqdn, which embeds an
