@@ -33,6 +33,26 @@ remote-state container and permissions to manage its Azure resources; `AcrPush`
 alone is insufficient. Only main pushes apply, but trusted PR runs using this
 identity receive the same Azure permissions, so protect workflow changes.
 
+## Azure proof-of-concept database
+
+The backend Container App runs PostgreSQL 17 as a sidecar in the same replica.
+The backend connects to it at `127.0.0.1:5432` and applies Prisma migrations
+and the demo seed before starting. PostgreSQL is not exposed through ingress.
+
+The database uses replica-scoped `EmptyDir` storage. It survives an individual
+container restart but is lost when the replica is replaced or stopped. A new
+replica starts with the seed, not a copy of the local database. Keep one replica:
+each replica has its own separate database. Do not use real or sensitive data.
+The seed includes a demo customer with a known password; use this only in an
+appropriately restricted test environment, as both app ingresses are public.
+
+Terraform and image publishing run independently in CI. After merging backend
+image changes, wait for the **Publish image to ACR** job. Then update
+`backend_image` in [dev.tfvars](my-infrastructure/dev.tfvars) to the published
+commit-SHA tag and merge that change. A successful Terraform apply alone does
+not prove startup succeeded. Check the backend and database logs in Azure, then
+request `/api/products` from the backend and verify the frontend shows products.
+
 ## Connecting the product frontend
 
 Run the backend on port `3001` and the frontend on port `8080`.
