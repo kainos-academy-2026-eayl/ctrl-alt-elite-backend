@@ -7,7 +7,7 @@ environment                    = "dev"
 owner                          = "caolan"
 
 acr_login_server = "acraiacademy26.azurecr.io"
-backend_image    = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:09361579f88b3a675d989e168ec2744e23246da2"
+backend_image = "acraiacademy26.azurecr.io/ctrl-alt-elite-backend:23c48ef8d1ff3d5ce84addf730a8d3edd00ff673"
 frontend_image   = "acraiacademy26.azurecr.io/ctrl-alt-elite-frontend:latest"
 database_image = "postgres:17-alpine"
 
